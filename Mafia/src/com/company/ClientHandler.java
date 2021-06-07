@@ -178,8 +178,8 @@ public class ClientHandler extends Thread {
 
     private void introduce() {
         try {
-            Thread.sleep(3000);
             sendMessage(new Message("God", "The introduction night starts."));
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -188,7 +188,7 @@ public class ClientHandler extends Thread {
         if (Roles.isMafia(role)) {
             for (ClientHandler c : clients) {
                 if (c != this && Roles.isMafia(c.getRole())) {
-                    text += c.getClientName() + " is " + c.getRole() + '\n';
+                    text += c.getClientName() + " is " + c.getRole() + ". ";
                 }
             }
             sendMessage(new Message("God", text));
@@ -203,15 +203,18 @@ public class ClientHandler extends Thread {
                 }
             }
         }
+
+
+
+
         sendMessage(new Message("God", "The night is over"));
     }
 
     private void dayChatroom() {
-
-        System.out.println("enter the datChatroom method");
+        System.out.println("Day chat is starting.");
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(3000);
         }catch (InterruptedException e){
             e.printStackTrace();
         }
@@ -242,7 +245,7 @@ public class ClientHandler extends Thread {
                     sendMessage(new Message("God", "As I just said, you can not chat"));
             }
         } else {
-            while (dayChat) { // TODO all ready checks the size of list too, take care
+            while (dayChat) {
                 Message message = receiveMessage();
                 if (message.getText().equals("ready")) {
                     isReady = true;
@@ -253,9 +256,23 @@ public class ClientHandler extends Thread {
         }
 
         // after it gets out of the while loop
+        while(!chatIsEndForAll()){
+
+        }
         sendMessage(new Message("God", "The chat is over"));
 
     }
+
+    private boolean chatIsEndForAll(){
+        for(ClientHandler c : clients){
+            if(!c.isReady)
+                return false;
+        }
+        return true;
+    }
+
+
+
 
     public boolean isReady() {
         return isReady;

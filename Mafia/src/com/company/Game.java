@@ -115,19 +115,20 @@ public class Game implements Runnable {
     }
 
     private void chat(){
-        System.out.println("enter chat, before notifying");
+        final boolean[] isDone = {false};
         checkAllWaitingHandler();
         notifyAllClients();
-        System.out.println("after notifying");
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
                 endChatForHandlers();
+                isDone[0] = true;
             }
         };
-        timer.schedule(timerTask,30 * 1000);
-        while(true){
+        timer.schedule(timerTask,5 * 60 * 1000);
+
+        while(!isDone[0]){
             if(allClientReady()){
                 endChatForHandlers();
                 timer.cancel();

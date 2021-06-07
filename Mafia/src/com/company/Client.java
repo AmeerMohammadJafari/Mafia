@@ -64,6 +64,8 @@ public class Client {
         Thread readOnly = new Thread(new ClientReadOnly(this.input));
         readOnly.start();
 
+
+
         while(readOnly.isAlive()){
             Message message = sendMessage();
             if(message.getText().equals("ready"))
