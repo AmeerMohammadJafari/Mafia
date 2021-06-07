@@ -3,7 +3,7 @@ package com.company;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-public class ClientReadOnly implements Runnable{
+public class ClientReadOnly extends Thread{
 
     private ObjectInputStream input;
 
@@ -17,11 +17,16 @@ public class ClientReadOnly implements Runnable{
         try {
             while (true) {
                 Message message = (Message) input.readObject();
+                if(message.getName().equals("God") && message.getText().equals("The chat is over")){
+                    System.out.println("Enter something to continue");
+                    return;
+                }
                 System.out.println(message.getName() + " : " + message.getText());
             }
         }
         catch (IOException | ClassNotFoundException e){
-
+            e.printStackTrace();
         }
+
     }
 }

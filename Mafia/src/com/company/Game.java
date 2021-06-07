@@ -1,8 +1,6 @@
 package com.company;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.SynchronousQueue;
 
 public class Game implements Runnable {
@@ -61,6 +59,9 @@ public class Game implements Runnable {
         for (int i = 0; i < numberOfClients; i++) {
             clients.get(i).setRole(roles.get(i));
         }
+        for(ClientHandler c : clients)
+            if(c.getRole() == Roles.Diehard)
+                c.setHealth(2);
     }
 
     private void notifyAllClients() {
@@ -93,7 +94,7 @@ public class Game implements Runnable {
         synchronized (clients) {
             for (ClientHandler c : clients) {
                 synchronized (c) {
-                    if (c.getState() != Thread.State.WAITING && c.getState() != Thread.State.TIMED_WAITING)
+                    if (c.getState() != Thread.State.WAITING /*&& c.getState() != Thread.State.TIMED_WAITING*/)
                         return false;
                 }
             }
@@ -102,20 +103,75 @@ public class Game implements Runnable {
     }
 
 
-    private void allWaitingHandler() {
-        while (true) {
+    private void checkAllWaitingHandler() {
+        /*while (true) {
             if (clientsWaiting())
                 break;
+        }*/
+        // TODO this part is modified, take care
+        while (!clientsWaiting()){
+
+        }
+    }
+
+    private void chat(){
+        System.out.println("enter chat, before notifying");
+        checkAllWaitingHandler();
+        notifyAllClients();
+        System.out.println("after notifying");
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                endChatForHandlers();
+            }
+        };
+        timer.schedule(timerTask,30 * 1000);
+        while(true){
+            if(allClientReady()){
+                endChatForHandlers();
+                timer.cancel();
+                break;
+            }
+        }
+    }
+
+    private boolean allClientReady(){
+        for(ClientHandler c : clients){
+            if(!c.isReady())
+                return false;
+        }
+        return true;
+    }
+
+    private synchronized void endChatForHandlers() {
+        synchronized (clients) {
+            for (ClientHandler c : clients) {
+                synchronized (c) {
+                    c.setDayChat(false);
+                }
+            }
         }
     }
 
 
+    // the game will go forward by checking handlers waiting state in each step
     @Override
     public void run() {
-        // at first set the roles of clients
-        allWaitingHandler();
+        // at first set the roles of clients, but checks if all clientHandlers are waiting
+        checkAllWaitingHandler();
+        // set the roles to the clientHandlers
         setRoles();
+        // then notify clientHandlers to send message to clients about their roles
         notifyAllClients();
-        // the game will go forward by checking handlers waiting state in each step
+        // check for waiting state
+        checkAllWaitingHandler();
+        // notify all and for 5 min at last set the game time in the dayChat
+        chat();
+
+
+
+
+
     }
 }

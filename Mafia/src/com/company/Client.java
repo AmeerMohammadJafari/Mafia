@@ -15,10 +15,17 @@ public class Client {
     private ObjectOutputStream output;
     private ObjectInputStream input;
     private static String type;
-    private boolean isReady;
     private Roles role;
+    private boolean isSilent;
+    private boolean isAwake;
+    private int health;
+    private boolean isLoggedIn;
+
 
     public Client(int port) {
+        isSilent = false;
+        isAwake = false;
+        isLoggedIn = false;
 
         try {
 
@@ -43,6 +50,34 @@ public class Client {
             receiveMessage();
     }
 
+    private void dayChatroom(){
+
+        isAwake = true;
+
+        receiveMessage();
+
+        if(!canChat()){
+            receiveMessage();
+        }
+
+        // create a new thread for only read
+        Thread readOnly = new Thread(new ClientReadOnly(this.input));
+        readOnly.start();
+
+        while(readOnly.isAlive()){
+            Message message = sendMessage();
+            if(message.getText().equals("ready"))
+                break;
+        }
+
+
+
+    }
+
+    private boolean canChat(){
+        return !isSilent && isLoggedIn && isAwake;
+    }
+
     public void startClient() {
 
         // enter the name
@@ -53,8 +88,9 @@ public class Client {
         assignRole(); // TODO probably you should assign the behaviour field in the future
         // introduction night
         introduction();
-
-        // this part is for chat
+        // start the day
+        // TODO as i said in the clientHandler, this parts should be in a loop i guess
+        dayChatroom();
 
 
         /*try {
@@ -84,7 +120,10 @@ public class Client {
     }
 
     private void assignRole() {
+        // TODO have to assign a behaviour i guess
         this.role = receiveRole();
+        if(role == Roles.Diehard)
+            health = 2;
         receiveMessage();
     }
 
@@ -105,7 +144,7 @@ public class Client {
         try {
             Scanner in = new Scanner(System.in);
             String s = in.nextLine();
-            message = new Message(s);
+            message = new Message(name, s);
             output.writeObject(message);
         } catch (IOException e) {
             e.printStackTrace();
@@ -113,13 +152,13 @@ public class Client {
         return message;
     }
 
+
     private void ready() {
         while (true) {
             receiveMessage();
             Message m = sendMessage();
             receiveMessage();
             if (m.getText().equals("ready")) {
-                isReady = true;
                 break;
             }
         }
@@ -128,15 +167,16 @@ public class Client {
     private void enterName() {
         while (true) {
             receiveMessage();
-            sendMessage();
+            Message m = sendMessage();
             Message message = receiveMessage();
             if (message.getName().equals("God") &&
                     message.getText().equals("Done")) {
 
-                this.name = name;
+                this.name = m.getText();
                 break;
             }
         }
+        isLoggedIn = true;
     }
 
 

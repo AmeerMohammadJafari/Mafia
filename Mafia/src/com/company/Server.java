@@ -38,7 +38,6 @@ public class Server {
                 clientHandler.start();
                 i++;
             }
-            System.out.println(i + "clients connected");
         } catch (IOException e) {
 
         }
