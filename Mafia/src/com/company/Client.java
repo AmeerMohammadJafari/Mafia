@@ -1,8 +1,6 @@
 package com.company;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -60,10 +58,22 @@ public class Client {
             receiveMessage();
         }
 
-        // create a new thread for only read
-        Thread readOnly = new Thread(new ClientReadOnly(this.input));
-        readOnly.start();
+        // create a new class to use it as a reader
+        class ClientReadOnly extends Thread {
+            @Override
+            public void run() {
+                while(true) {
+                    Message message = receiveMessage();
+                    if (message.getName().equals("God") && message.getText().equals("The chat is over")) {
+                        /*  System.out.println("Enter something to continue");*/
+                        return;
+                    }
+                }
+            }
+        }
 
+        Thread readOnly = new Thread(new ClientReadOnly());
+        readOnly.start();
 
 
         while(readOnly.isAlive()){
@@ -80,6 +90,41 @@ public class Client {
         return !isSilent && isLoggedIn && isAwake;
     }
 
+    private void vote(){
+
+
+        class GetMessageOnly extends Thread{
+            @Override
+            public void run() {
+                while(true) {
+                    Message message = receiveMessage();
+                    if (message.getName().equals("God") && message.getText().equals("Done"))
+                        return;
+                }
+            }
+        }
+
+        class SendMessageOnly extends Thread{
+            @Override
+            public void run() {
+                while(true){
+                    Message message = sendMessage();
+                }
+            }
+        }
+
+        Thread readOnly = new Thread(new GetMessageOnly());
+        Thread sendOnly = new Thread(new SendMessageOnly());
+        readOnly.start();
+        sendOnly.start();
+        while(readOnly.isAlive()){
+
+        }
+        sendOnly.interrupt();
+        receiveMessage();
+    }
+
+
     public void startClient() {
 
         // enter the name
@@ -93,6 +138,8 @@ public class Client {
         // start the day
         // TODO as i said in the clientHandler, this parts should be in a loop i guess
         dayChatroom();
+        // the vote part
+        vote();
 
 
         /*try {
@@ -134,6 +181,8 @@ public class Client {
         try {
             message = (Message) input.readObject();
             System.out.println(message.getName() + " : " + message.getText());
+        } catch (EOFException | ClassCastException | StreamCorruptedException e){
+
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

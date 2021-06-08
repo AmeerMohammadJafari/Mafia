@@ -1,5 +1,6 @@
 package com.company;
 
+import java.sql.Time;
 import java.util.*;
 import java.util.concurrent.SynchronousQueue;
 
@@ -59,8 +60,8 @@ public class Game implements Runnable {
         for (int i = 0; i < numberOfClients; i++) {
             clients.get(i).setRole(roles.get(i));
         }
-        for(ClientHandler c : clients)
-            if(c.getRole() == Roles.Diehard)
+        for (ClientHandler c : clients)
+            if (c.getRole() == Roles.Diehard)
                 c.setHealth(2);
     }
 
@@ -109,12 +110,12 @@ public class Game implements Runnable {
                 break;
         }*/
         // TODO this part is modified, take care
-        while (!clientsWaiting()){
+        while (!clientsWaiting()) {
 
         }
     }
 
-    private void chat(){
+    private void chat() {
         final boolean[] isDone = {false};
         checkAllWaitingHandler();
         notifyAllClients();
@@ -126,10 +127,11 @@ public class Game implements Runnable {
                 isDone[0] = true;
             }
         };
-        timer.schedule(timerTask,5 * 60 * 1000);
+        timer.schedule(timerTask, 30 * 1000);
 
-        while(!isDone[0]){
-            if(allClientReady()){
+
+        while (!isDone[0]) {
+            if (allClientReady()) {
                 endChatForHandlers();
                 timer.cancel();
                 break;
@@ -137,9 +139,9 @@ public class Game implements Runnable {
         }
     }
 
-    private boolean allClientReady(){
-        for(ClientHandler c : clients){
-            if(!c.isReady())
+    private boolean allClientReady() {
+        for (ClientHandler c : clients) {
+            if (!c.isReady())
                 return false;
         }
         return true;
@@ -153,6 +155,31 @@ public class Game implements Runnable {
                 }
             }
         }
+    }
+
+    private synchronized void interruptVoteThreads() {
+        synchronized (clients) {
+            for (ClientHandler c : clients) {
+                synchronized (c) {
+                    c.getVoteThread().interrupt();
+                }
+            }
+        }
+    }
+
+    private void vote() {
+        notifyAllClients();
+        Timer timer = new Timer();
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                interruptVoteThreads();
+            }
+        };
+
+        timer.schedule(timerTask, 30 * 1000);
+
     }
 
 
@@ -169,9 +196,10 @@ public class Game implements Runnable {
         checkAllWaitingHandler();
         // notify all and for 5 min at last set the game time in the dayChat
         chat();
-
-
-
+        // check for waiting state
+        checkAllWaitingHandler();
+        // notify all and kill the threads after 30 seconds
+        vote();
 
 
     }

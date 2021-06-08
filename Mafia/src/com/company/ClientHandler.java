@@ -5,10 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Vector;
+import java.util.*;
 
 public class ClientHandler extends Thread {
 
@@ -27,6 +24,8 @@ public class ClientHandler extends Thread {
     private boolean dayChat;
     private int health;
     private boolean isLoggedIn;
+    private static HashMap<String, Integer> votesList;
+    private Thread voteThread;
 
 
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
@@ -37,6 +36,8 @@ public class ClientHandler extends Thread {
         this.dayChat = false;
         this.isAwake = false;
         this.isLoggedIn = false;
+        this.votesList = new HashMap<>();
+        this.voteThread = null;
 
         try {
             output = new ObjectOutputStream(socket.getOutputStream());
@@ -211,7 +212,7 @@ public class ClientHandler extends Thread {
     }
 
     private void dayChatroom() {
-        System.out.println("Day chat is starting.");
+
 
         try {
             Thread.sleep(3000);
@@ -296,6 +297,112 @@ public class ClientHandler extends Thread {
         this.dayChat = dayChat;
     }
 
+    private boolean isClientName(String text){
+        for(ClientHandler c : clients) {
+            if(c.isLoggedIn) {
+                if (c.getClientName().equals(text))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private String makeAListOfClients(){
+        String s = "";
+        for(ClientHandler c : clients){
+            if(c.isLoggedIn){
+                s += c.getClientName() + " ";
+            }
+        }
+        return s;
+    }
+
+
+    private void updateVoteHashMap(Message v, HashMap<String, Integer> votes){
+        String name = v.getText();
+        votes.put(name,votes.get(name) + 1);
+    }
+
+
+
+    private void vote(){
+
+        for(ClientHandler c : clients){
+            votesList.put(c.getClientName(), 0);
+        }
+
+        class Voting extends Thread{
+
+
+            @Override
+            public void run() {
+
+
+                sendMessage(new Message("God", "The voting is starting."));
+
+                try {
+                    Thread.sleep(2000);
+                }catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+
+                sendMessage(new Message("God", "The list of current players :\n" +
+                        makeAListOfClients() + "\n Enter name of the player, you think is mafia."));
+
+                try {
+                    Thread.sleep(3000);
+                }catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+
+                Message v = null;
+
+                while(true) {
+                    v = receiveMessage();
+                    if(isClientName(v.getText()))
+                        break;
+                    sendMessage(new Message("God", ":|"));
+                }
+                // use this message in the client
+                sendMessage(new Message("God", "Done"));
+
+                updateVoteHashMap(v,votesList);
+
+                sendToOthers(new Message(clientName, "I vote to " + v.getText() + "."));
+
+            }
+
+
+
+
+
+        }
+
+        Voting voting = new Voting();
+        voteThread = new Thread(voting);
+        voteThread.start();
+        while(!endVoteThreads()){
+
+        }
+        sendMessage(new Message("God", "The voting ends"));
+    }
+
+
+    private boolean endVoteThreads(){
+        for(ClientHandler c : clients) {
+            if(c.getVoteThread() != null) {
+                if (c.getVoteThread().isAlive())
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    public Thread getVoteThread() {
+        return voteThread;
+    }
+
+
     @Override
     public void run() {
 
@@ -310,11 +417,13 @@ public class ClientHandler extends Thread {
         // start the day
         // TODO i guess that this parts should be in a loop
         // wait, the game will notify
-        System.out.println("before wait");
         waitClientHandler();
         // the day starts with chatting between clients
         dayChatroom();
-
+        // wait, the game will notify again
+        waitClientHandler();
+        // start the vote
+        vote();
 
         // this part is for chatroom between player and should be a method i guess
         /*try {
