@@ -52,11 +52,12 @@ public class Client {
 
         isAwake = true;
 
-        receiveMessage();
+        // TODO take care about this part, i guess that is an extra part
+        /*receiveMessage();
 
         if(!canChat()){
             receiveMessage();
-        }
+        }*/
 
         // create a new class to use it as a reader
         class ClientReadOnly extends Thread {
@@ -72,15 +73,29 @@ public class Client {
             }
         }
 
+        class ClientSendOnly extends Thread{
+            @Override
+            public void run() {
+                while(true){
+                    Message message = sendMessage();
+                }
+            }
+        }
+
         Thread readOnly = new Thread(new ClientReadOnly());
+        Thread sendOnly = new Thread(new ClientSendOnly());
         readOnly.start();
-
-
+        sendOnly.start();
         while(readOnly.isAlive()){
+
+        }
+        sendOnly.stop();
+
+        /*while(readOnly.isAlive()){
             Message message = sendMessage();
             if(message.getText().equals("ready"))
                 break;
-        }
+        }*/
 
 
 

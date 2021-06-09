@@ -25,6 +25,7 @@ public class ClientHandler extends Thread {
     private int health;
     private boolean isLoggedIn;
     private static HashMap<String, Integer> votesList;
+    private Thread chatThread;
     private Thread voteThread;
 
 
@@ -37,6 +38,7 @@ public class ClientHandler extends Thread {
         this.isAwake = false;
         this.isLoggedIn = false;
         this.votesList = new HashMap<>();
+        this.chatThread = null;
         this.voteThread = null;
 
         try {
@@ -58,8 +60,8 @@ public class ClientHandler extends Thread {
             Message message = receiveMessage();
             int flag = 1;
             for (ClientHandler c : clients) {
-                if (c.getName().equals(message.getText())) {
-                    sendMessage(new Message("God", "The clientName you entered is chosen by" +
+                if (c.getClientName().equals(message.getText())) {
+                    sendMessage(new Message("God", "The name you entered is chosen by" +
                             " another client"));
                     flag = 0;
                     break;
@@ -100,17 +102,6 @@ public class ClientHandler extends Thread {
         }
     }
 
-
-    // TODO this method should do the relevant task according to the message
-
-    /*private void handleMessage(Message message) throws IOException {
-        // send to all
-        for (ClientHandler c : clients) {
-            if (c.equals(this))
-                continue;
-            c.getOutput().writeObject(message);
-        }
-    }*/
 
     public static boolean allReady() {
 
@@ -233,20 +224,49 @@ public class ClientHandler extends Thread {
         // TODO dayChat should set false in the game to stop chat
 
         sendMessage(new Message("God", "Now the day starts and it's chat time. It will take 5 min" +
-                "at last, if you get ready for the voting at any time just enter (ready) and wait for " +
+                "ut last, if you get ready for the voting at any time just enter (ready) and wait for " +
                 "the others"));
+
+
+        class Chatting extends Thread{
+            @Override
+            public void run() {
+
+                if (!canChat()) { // TODO if a client is silent, it should be set in the client too ( as a field )
+                    isReady = true;
+                    sendMessage(new Message("God", "You can not chat"));
+                    while (true /*dayChat*/) {
+                        if (receiveMessage() != null)
+                            sendMessage(new Message("God", "As I just said, you can not chat"));
+                    }
+                } else {
+                    while (true /*dayChat*/) {
+                        Message message = receiveMessage();
+                        if (message.getText().equals("ready")) {
+                            isReady = true;
+                            sendToOthers(new Message("God", clientName + " is ready."));
+                            continue;
+                           /* break;*/
+                        }
+                        sendToOthers(message);
+                    }
+                }
+            }
+        }
+
 
         // the game will check if all the clients are ready or the time of the chat ends and make dayChat false
 
-        if (!canChat()) { // TODO if a client is silent, it should be set in the client too ( as a field )
+
+        /*if (!canChat()) { // TODO if a client is silent, it should be set in the client too ( as a field )
             this.isReady = true;
             sendMessage(new Message("God", "You can not chat"));
-            while (dayChat) {
+            while (true *//*dayChat*//*) {
                 if (receiveMessage() != null)
                     sendMessage(new Message("God", "As I just said, you can not chat"));
             }
         } else {
-            while (dayChat) {
+            while (true *//*dayChat*//*) {
                 Message message = receiveMessage();
                 if (message.getText().equals("ready")) {
                     isReady = true;
@@ -254,20 +274,35 @@ public class ClientHandler extends Thread {
                 }
                 sendToOthers(message);
             }
-        }
+        }*/
+
+        chatThread = new Thread(new Chatting());
+        chatThread.start();
 
         // after it gets out of the while loop
         while(!chatIsEndForAll()){
 
         }
+
+        System.out.println("after the end loop in clientHandler");
+
         sendMessage(new Message("God", "The chat is over"));
 
     }
 
+
+    public Thread getChatThread() {
+        return chatThread;
+    }
+
     private boolean chatIsEndForAll(){
         for(ClientHandler c : clients){
-            if(!c.isReady)
-                return false;
+            try {
+                if (!c.chatThread.isInterrupted())
+                    return false;
+            }catch (NullPointerException e){
+
+            }
         }
         return true;
     }

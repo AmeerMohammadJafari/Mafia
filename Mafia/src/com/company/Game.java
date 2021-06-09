@@ -116,9 +116,14 @@ public class Game implements Runnable {
     }
 
     private void chat() {
-        final boolean[] isDone = {false};
+        boolean[] isDone = {false};
         checkAllWaitingHandler();
         notifyAllClients();
+
+        while(!allChatThreadsAlive()){
+
+        }
+
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
             @Override
@@ -127,8 +132,7 @@ public class Game implements Runnable {
                 isDone[0] = true;
             }
         };
-        timer.schedule(timerTask, 30 * 1000);
-
+        timer.schedule(timerTask, 5 * 60 * 1000);
 
         while (!isDone[0]) {
             if (allClientReady()) {
@@ -137,6 +141,15 @@ public class Game implements Runnable {
                 break;
             }
         }
+    }
+    private boolean allChatThreadsAlive(){
+        for(ClientHandler c : clients){
+            if(c.getChatThread() == null)
+                return false;
+            if(!c.getChatThread().isAlive())
+                return false;
+        }
+        return true;
     }
 
     private boolean allClientReady() {
@@ -151,7 +164,7 @@ public class Game implements Runnable {
         synchronized (clients) {
             for (ClientHandler c : clients) {
                 synchronized (c) {
-                    c.setDayChat(false);
+                    c.getChatThread().interrupt();
                 }
             }
         }
@@ -161,7 +174,7 @@ public class Game implements Runnable {
         synchronized (clients) {
             for (ClientHandler c : clients) {
                 synchronized (c) {
-                    c.getVoteThread().interrupt();
+                    c.getVoteThread().stop();
                 }
             }
         }
