@@ -2,6 +2,8 @@ package com.company;
 
 import java.sql.Time;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 
 public class Game implements Runnable {
@@ -128,7 +130,7 @@ public class Game implements Runnable {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                endChatForHandlers();
+                interruptChatThreads();
                 isDone[0] = true;
             }
         };
@@ -136,18 +138,22 @@ public class Game implements Runnable {
 
         while (!isDone[0]) {
             if (allClientReady()) {
-                endChatForHandlers();
+                interruptChatThreads();
                 timer.cancel();
                 break;
             }
         }
     }
+
+
     private boolean allChatThreadsAlive(){
         for(ClientHandler c : clients){
-            if(c.getChatThread() == null)
+            try {
+                if (!c.getChatThread().isAlive())
+                    return false;
+            }catch (NullPointerException e){
                 return false;
-            if(!c.getChatThread().isAlive())
-                return false;
+            }
         }
         return true;
     }
@@ -160,7 +166,7 @@ public class Game implements Runnable {
         return true;
     }
 
-    private synchronized void endChatForHandlers() {
+    private synchronized void interruptChatThreads() {
         synchronized (clients) {
             for (ClientHandler c : clients) {
                 synchronized (c) {
@@ -180,19 +186,33 @@ public class Game implements Runnable {
         }
     }
 
+    private boolean allVoteThreadsAlive(){
+        for(ClientHandler c : clients){
+            try {
+                if (!c.getVoteThread().isAlive())
+                    return false;
+            }catch (NullPointerException e){
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void vote() {
         notifyAllClients();
-        Timer timer = new Timer();
 
+        while(!allVoteThreadsAlive()){
+
+        }
+
+        Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
                 interruptVoteThreads();
             }
         };
-
         timer.schedule(timerTask, 30 * 1000);
-
     }
 
 

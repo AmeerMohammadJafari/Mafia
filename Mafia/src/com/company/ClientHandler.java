@@ -197,8 +197,6 @@ public class ClientHandler extends Thread {
         }
 
 
-
-
         sendMessage(new Message("God", "The night is over"));
     }
 
@@ -207,7 +205,7 @@ public class ClientHandler extends Thread {
 
         try {
             Thread.sleep(3000);
-        }catch (InterruptedException e){
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
@@ -228,25 +226,24 @@ public class ClientHandler extends Thread {
                 "the others"));
 
 
-        class Chatting extends Thread{
+        class Chatting extends Thread {
             @Override
             public void run() {
 
                 if (!canChat()) { // TODO if a client is silent, it should be set in the client too ( as a field )
                     isReady = true;
                     sendMessage(new Message("God", "You can not chat"));
-                    while (true /*dayChat*/) {
+                    while (!this.isInterrupted()) {
                         if (receiveMessage() != null)
                             sendMessage(new Message("God", "As I just said, you can not chat"));
                     }
                 } else {
-                    while (true /*dayChat*/) {
+                    while (!this.isInterrupted()) {
                         Message message = receiveMessage();
                         if (message.getText().equals("ready")) {
                             isReady = true;
                             sendToOthers(new Message("God", clientName + " is ready."));
                             continue;
-                           /* break;*/
                         }
                         sendToOthers(message);
                     }
@@ -255,36 +252,14 @@ public class ClientHandler extends Thread {
         }
 
 
-        // the game will check if all the clients are ready or the time of the chat ends and make dayChat false
-
-
-        /*if (!canChat()) { // TODO if a client is silent, it should be set in the client too ( as a field )
-            this.isReady = true;
-            sendMessage(new Message("God", "You can not chat"));
-            while (true *//*dayChat*//*) {
-                if (receiveMessage() != null)
-                    sendMessage(new Message("God", "As I just said, you can not chat"));
-            }
-        } else {
-            while (true *//*dayChat*//*) {
-                Message message = receiveMessage();
-                if (message.getText().equals("ready")) {
-                    isReady = true;
-                    break;
-                }
-                sendToOthers(message);
-            }
-        }*/
 
         chatThread = new Thread(new Chatting());
         chatThread.start();
 
         // after it gets out of the while loop
-        while(!chatIsEndForAll()){
+        while (!chatIsEndForAll()) {
 
         }
-
-        System.out.println("after the end loop in clientHandler");
 
         sendMessage(new Message("God", "The chat is over"));
 
@@ -295,19 +270,17 @@ public class ClientHandler extends Thread {
         return chatThread;
     }
 
-    private boolean chatIsEndForAll(){
-        for(ClientHandler c : clients){
+    private boolean chatIsEndForAll() {
+        for (ClientHandler c : clients) {
             try {
-                if (!c.chatThread.isInterrupted())
+                if (c.getChatThread().isAlive())
                     return false;
-            }catch (NullPointerException e){
-
+            } catch (NullPointerException e) {
+                return false; // TODO this part is new
             }
         }
         return true;
     }
-
-
 
 
     public boolean isReady() {
@@ -315,7 +288,7 @@ public class ClientHandler extends Thread {
     }
 
     // TODO this method should be updated in the future
-    private boolean canChat(){
+    private boolean canChat() {
         return !isSilent && isAwake && isLoggedIn;
     }
 
@@ -332,9 +305,9 @@ public class ClientHandler extends Thread {
         this.dayChat = dayChat;
     }
 
-    private boolean isClientName(String text){
-        for(ClientHandler c : clients) {
-            if(c.isLoggedIn) {
+    private boolean isClientName(String text) {
+        for (ClientHandler c : clients) {
+            if (c.isLoggedIn) {
                 if (c.getClientName().equals(text))
                     return true;
             }
@@ -342,31 +315,37 @@ public class ClientHandler extends Thread {
         return false;
     }
 
-    private String makeAListOfClients(){
+    private String makeAListOfClients() {
         String s = "";
-        for(ClientHandler c : clients){
-            if(c.isLoggedIn){
-                s += c.getClientName() + " ";
+        int i = 1;
+        for (ClientHandler c : clients) {
+            if (c.isLoggedIn) {
+                s += i + ". " + c.getClientName() + " ";
             }
         }
         return s;
     }
 
 
-    private void updateVoteHashMap(Message v, HashMap<String, Integer> votes){
-        String name = v.getText();
-        votes.put(name,votes.get(name) + 1);
+    private void updateVoteHashMap(Message v, HashMap<String, Integer> votes) {
+        try {
+            String name = v.getText();
+            votes.put(name, votes.get(name) + 1);
+        } catch (NullPointerException ignored) {
+
+        }
     }
 
 
+    private void vote() {
 
-    private void vote(){
-
-        for(ClientHandler c : clients){
+        for (ClientHandler c : clients) {
             votesList.put(c.getClientName(), 0);
         }
 
-        class Voting extends Thread{
+        Message[] v = {null};
+
+        class Voting extends Thread {
 
 
             @Override
@@ -377,57 +356,47 @@ public class ClientHandler extends Thread {
 
                 try {
                     Thread.sleep(2000);
-                }catch (InterruptedException e){
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
                 sendMessage(new Message("God", "The list of current players :\n" +
-                        makeAListOfClients() + "\n Enter name of the player, you think is mafia."));
+                        makeAListOfClients() + "\nEnter name of the player, you think is mafia."));
 
-                try {
-                    Thread.sleep(3000);
-                }catch (InterruptedException e){
-                    e.printStackTrace();
-                }
 
-                Message v = null;
-
-                while(true) {
-                    v = receiveMessage();
-                    if(isClientName(v.getText()))
-                        break;
+                while (true) {
+                    Message message = receiveMessage();
+                    if (isClientName(message.getText())) {
+                        v[0] = message;
+                        sendMessage(new Message("God", "Done"));
+                        sendToOthers(new Message(clientName, "I vote to " + v[0].getText() + "."));
+                        continue;
+                    }
                     sendMessage(new Message("God", ":|"));
                 }
-                // use this message in the client
-                sendMessage(new Message("God", "Done"));
-
-                updateVoteHashMap(v,votesList);
-
-                sendToOthers(new Message(clientName, "I vote to " + v.getText() + "."));
-
             }
-
-
-
-
-
         }
 
-        Voting voting = new Voting();
-        voteThread = new Thread(voting);
+        updateVoteHashMap(v[0], votesList);
+
+
+        voteThread = new Thread(new Voting());
         voteThread.start();
-        while(!endVoteThreads()){
+        while (!endVoteThreads()) {
 
         }
+
         sendMessage(new Message("God", "The voting ends"));
     }
 
 
-    private boolean endVoteThreads(){
-        for(ClientHandler c : clients) {
-            if(c.getVoteThread() != null) {
+    private boolean endVoteThreads() {
+        for (ClientHandler c : clients) {
+            try {
                 if (c.getVoteThread().isAlive())
                     return false;
+            } catch (NullPointerException e) {
+                return false;
             }
         }
         return true;

@@ -52,12 +52,7 @@ public class Client {
 
         isAwake = true;
 
-        // TODO take care about this part, i guess that is an extra part
-        /*receiveMessage();
 
-        if(!canChat()){
-            receiveMessage();
-        }*/
 
         // create a new class to use it as a reader
         class ClientReadOnly extends Thread {
@@ -66,7 +61,6 @@ public class Client {
                 while(true) {
                     Message message = receiveMessage();
                     if (message.getName().equals("God") && message.getText().equals("The chat is over")) {
-                        /*  System.out.println("Enter something to continue");*/
                         return;
                     }
                 }
@@ -89,13 +83,8 @@ public class Client {
         while(readOnly.isAlive()){
 
         }
-        sendOnly.stop();
+        sendOnly.interrupt(); // TODO used stop method before, so take care
 
-        /*while(readOnly.isAlive()){
-            Message message = sendMessage();
-            if(message.getText().equals("ready"))
-                break;
-        }*/
 
 
 
@@ -136,7 +125,7 @@ public class Client {
 
         }
         sendOnly.interrupt();
-        receiveMessage();
+        // remove a receive from here
     }
 
 
