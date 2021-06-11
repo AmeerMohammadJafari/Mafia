@@ -8,10 +8,12 @@ public class Game extends Thread{
     private Vector<ClientHandler> mafias;
     private Vector<ClientHandler> villagers;
     private static int numberOfClients;
+    private ClientHandler removed;
 
     public Game(Vector<ClientHandler> clients, int numberOfClients) {
         this.clients = clients;
         Game.numberOfClients = numberOfClients;
+        removed = null;
     }
 
     private void sleepThread(int time){
@@ -164,28 +166,96 @@ public class Game extends Thread{
                 sleepThread(500);
                 sendToAll(new Message("God", "The chat is over."));
                 timer.cancel();
+                break;
             }
+            sleepThread(1000);
+        }
+    }
+
+    private boolean allVoteStart(){
+        for(ClientHandler c : clients){
+            synchronized (c){
+                if(!c.isVoteStarted())
+                    return false;
+            }
+        }
+        return true;
+    }
+
+
+    private void loopUntilVoteStart(){
+        while (!allVoteStart()) {
             sleepThread(1000);
         }
     }
 
     private void endVote(){
 
+        loopUntilVoteStart();
+
+        System.out.println("The first part of the endVote method, just before setting the timer");
+
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                sendToAll(new Message("God", "The vote is over"));
                 ClientHandler.setMode(Mode.ResultOfVote);
+                sleepThread(500);
+                sendToAll(new Message("God", "The vote is over."));
             }
         };
         timer.schedule(timerTask, 30 * 1000);
 
-        while(ClientHandler.getMode() == Mode.Vote){
+
+        // a loop for not going forward to result vote until the mode is changed
+        while(ClientHandler.getMode() != Mode.ResultOfVote){
             sleepThread(1000);
         }
 
+        sleepThread(500);
 
+
+
+        System.out.println("passing the last loop in the endVote");
+
+    }
+
+    private void resultOfVote(){
+
+        sendToAll(new Message("God", "The result will be shown."));
+        sleepThread(3000);
+
+        HashMap<ClientHandler, Integer> voteMap = new HashMap<>();
+
+        for(ClientHandler c : clients){
+            synchronized (c) {
+                voteMap.put(c, 0);
+            }
+        }
+
+        for(ClientHandler c : clients){
+            synchronized (c){
+                try {
+                    voteMap.put(c.getMyVote(), voteMap.get(c.getMyVote()) + 1);
+                }catch (NullPointerException e){
+                    System.out.println("empty vote");
+                }
+            }
+        }
+
+
+
+        int maxVote = Collections.max(voteMap.values());
+        for(ClientHandler c : voteMap.keySet()){
+            if(voteMap.get(c) == maxVote){
+                removed = c;
+                break;
+            }
+        }
+
+
+        assert removed != null;
+        sendToAll(new Message("God", removed.getClientName() + " has to leave the game"));
     }
 
 
@@ -209,6 +279,8 @@ public class Game extends Thread{
         endChat(); // it sets the game mode to vote internally
 
         endVote();
+
+        resultOfVote();
 
 
 

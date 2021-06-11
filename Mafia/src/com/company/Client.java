@@ -63,6 +63,7 @@ public class Client {
 
 
 
+
     private void startClient(){
 
 
@@ -73,7 +74,8 @@ public class Client {
                     Message message = receiveMessage();
 
                     if(message.getName().equals("God") &&
-                    message.getText().equals("The chat is over.")){
+                            (message.getText().equals("The chat is over.") ||
+                                    message.getText().equals("The vote is over."))){
 
                         justSendMessage();
                     }
@@ -95,11 +97,6 @@ public class Client {
         readOnly.start();
         sendOnly.start();
     }
-
-
-
-
-
 
 
     public static void main(String[] args) {

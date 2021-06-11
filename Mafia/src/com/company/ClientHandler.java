@@ -18,12 +18,12 @@ public class ClientHandler extends Thread {
     private Role role;
     private boolean isSilent; // TODO this field can be set by psycho either when a client just left and want
     private boolean isLoggedIn;
-    private static HashMap<String, Integer> votesList;
     private static Mode mode;
     private boolean sendRole;
     private boolean introduced;
     private boolean chatStarted;
     private boolean voteStarted;
+    private ClientHandler myVote;
 
 
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
@@ -35,12 +35,12 @@ public class ClientHandler extends Thread {
         this.isLoggedIn = false;
         this.chatStarted = false;
         this.voteStarted = false;
-        this.votesList = new HashMap<>();
         role = null;
         clientName = null;
         clients = clientHandlers;
         sendRole = false;
         introduced = false;
+        myVote = null;
 
         try {
             output = new ObjectOutputStream(socket.getOutputStream());
@@ -48,6 +48,15 @@ public class ClientHandler extends Thread {
         } catch (IOException e) {
 
         }
+    }
+
+
+    public boolean isVoteStarted() {
+        return voteStarted;
+    }
+
+    public ClientHandler getMyVote() {
+        return myVote;
     }
 
     public boolean isChatStarted() {
@@ -139,15 +148,19 @@ public class ClientHandler extends Thread {
         return s;
     }
 
-    private boolean isClientName(String text) {
+    private ClientHandler isClientName(String text) {
         for (ClientHandler c : clients) {
             if (c.isLoggedIn) {
-                if (c.getClientName().equals(text))
-                    return true;
+                if (c.getClientName().equals(text)) {
+                    return c;
+                }
             }
         }
-        return false;
+        return null;
     }
+
+
+
 
     @Override
     public void run() {
@@ -184,6 +197,18 @@ public class ClientHandler extends Thread {
                 }
                 vote();
             }
+            else if(mode == Mode.ResultOfVote){
+                sleepThread(1000);
+                // the game will handle this part
+            }
+            else if(mode == Mode.VoteBehaviour){
+
+            }
+
+
+
+
+
         }
 
 
@@ -272,13 +297,13 @@ public class ClientHandler extends Thread {
                 "the others"));
         sleepThread(2000);
 
+        for (ClientHandler c : clients)
+            c.isReady = false;
+
         if (isSilent) { // TODO i think that you should consider other factors for not chatting
             isReady = true;
             sendMessage(new Message("God", "You can not chat"));
         }
-
-        for (ClientHandler c : clients)
-            c.isReady = false;
 
         chatStarted = true;
     }
@@ -287,7 +312,7 @@ public class ClientHandler extends Thread {
     private void chat() {
         Message message = receiveMessage();
 
-        if(mode == Mode.DayChatroom) {
+        if (mode == Mode.DayChatroom) {
             if (isSilent) {
                 sendMessage(new Message("God", "As I just said, you can not chat"));
             } else {
@@ -303,31 +328,40 @@ public class ClientHandler extends Thread {
     }
 
     private void voteIntro() {
-        // put all the clients in the hashMap
-        for (ClientHandler c : clients) {
-            votesList.put(c.getClientName(), 0);
-        }
-
 
         sendMessage(new Message("God", "The voting is starting."));
+
         sleepThread(1000);
+
         sendMessage(new Message("God", "The list of current players :\n" +
                 makeAListOfClients() + "\nEnter name of the player, you think is mafia."));
 
+        myVote = null;
         voteStarted = true;
     }
 
     private void vote() {
 
         Message message = receiveMessage();
+
         if (mode == Mode.Vote) {
-            if (isClientName(message.getText())) {
-                sendMessage(new Message("God", "Done"));
-                sendToOthers(new Message(clientName, "I vote to " + message.getText() + "."));
+            if (isClientName(message.getText()) != null) {
+
+                if(message.getText().equals(clientName)){
+                    sendMessage(new Message("God", "You can not vote to yourself :|"));
+                }
+                else {
+                    myVote = isClientName(message.getText());
+                    sendMessage(new Message("God", "Done"));
+                    sendToOthers(new Message(clientName, "I vote to " + message.getText() + "."));
+                }
+
             } else {
                 sendMessage(new Message("God", ":|"));
             }
         }
-
     }
+
+
+
 }
