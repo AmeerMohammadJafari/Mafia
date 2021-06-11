@@ -3,7 +3,6 @@ package com.company;
 import java.io.Serializable;
 
 public class Message implements Serializable {
-   // private String type
     private String name;
     private String text;
 
@@ -23,5 +22,9 @@ public class Message implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

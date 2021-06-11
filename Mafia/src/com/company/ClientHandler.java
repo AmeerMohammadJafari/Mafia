@@ -1,60 +1,195 @@
 package com.company;
 
-import javax.management.relation.Role;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Vector;
 
 public class ClientHandler extends Thread {
-
 
     private static Vector<ClientHandler> clients;
     private static int numberOfClients;
     private ObjectOutputStream output;
     private ObjectInputStream input;
     private String clientName;
-    private boolean isAwake;
-    private boolean isReady; // use at the beginning of the game and for chat ready
-    private Roles role;
+    private boolean isReady;
+    private Role role;
     private boolean isSilent; // TODO this field can be set by psycho either when a client just left and want
-    // just watch
-    // declare some booleans for time
-    private boolean dayChat;
-    private int health;
     private boolean isLoggedIn;
     private static HashMap<String, Integer> votesList;
-    private Thread chatThread;
-    private Thread voteThread;
+    private static Mode mode;
+    private boolean sendRole;
+    private boolean introduced;
+    private boolean chatStarted;
+    private boolean voteStarted;
 
 
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
 
+        mode = Mode.EnterNameAndReady;
         ClientHandler.numberOfClients = numberOfClients;
         this.isReady = false;
         this.isSilent = false;
-        this.dayChat = false;
-        this.isAwake = false;
         this.isLoggedIn = false;
+        this.chatStarted = false;
+        this.voteStarted = false;
         this.votesList = new HashMap<>();
-        this.chatThread = null;
-        this.voteThread = null;
+        role = null;
+        clientName = null;
+        clients = clientHandlers;
+        sendRole = false;
+        introduced = false;
 
         try {
             output = new ObjectOutputStream(socket.getOutputStream());
             input = new ObjectInputStream(socket.getInputStream());
-            clients = clientHandlers;
         } catch (IOException e) {
 
         }
     }
 
-    public void setHealth(int health) {
-        this.health = health;
+    public boolean isChatStarted() {
+        return chatStarted;
     }
 
-    private void enterName() {
+    public static Mode getMode() {
+        return mode;
+    }
+
+    public void setReady(boolean ready) {
+        isReady = ready;
+    }
+
+    public boolean isIntroduced() {
+        return introduced;
+    }
+
+    public boolean isReady() {
+        return isReady;
+    }
+
+    public boolean isSendRole() {
+        return sendRole;
+    }
+
+    public boolean isLoggedIn() {
+        return isLoggedIn;
+    }
+
+    public static void setMode(Mode mode) {
+        ClientHandler.mode = mode;
+    }
+
+    public String getClientName() {
+        return clientName;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public void sendMessage(Message message) {
+        try {
+            output.writeObject(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Message receiveMessage() {
+        Message message = null;
+        try {
+            message = (Message) input.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return message;
+    }
+
+    private void sendToOthers(Message message) {
+        for (ClientHandler c : clients) {
+            if (c != this)
+                c.sendMessage(message);
+        }
+    }
+
+    private void sleepThread(int time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String makeAListOfClients() {
+        String s = "";
+        int i = 1;
+        for (ClientHandler c : clients) {
+            if (c.isLoggedIn) {
+                s += i + ". " + c.getClientName() + " ";
+            }
+            i++;
+        }
+        return s;
+    }
+
+    private boolean isClientName(String text) {
+        for (ClientHandler c : clients) {
+            if (c.isLoggedIn) {
+                if (c.getClientName().equals(text))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void run() {
+
+
+        while (true) {
+
+            if (mode == Mode.EnterNameAndReady) {
+                if (isLoggedIn) {
+                    sleepThread(1000);
+                    continue;
+                }
+                enterNameAndReady();
+            } else if (mode == Mode.SendRoll) {
+                if (sendRole) {
+                    sleepThread(1000);
+                    continue;
+                }
+                sendRole();
+            } else if (mode == Mode.Introduction) {
+                if (introduced) {
+                    sleepThread(1000);
+                    continue;
+                }
+                introduce();
+            } else if (mode == Mode.DayChatroom) {
+                if (!chatStarted) {
+                    chatIntro();
+                }
+                chat();
+            } else if (mode == Mode.Vote) {
+                if (!voteStarted) {
+                    voteIntro();
+                }
+                vote();
+            }
+        }
+
+
+    }
+
+    private void enterNameAndReady() {
         while (true) {
             sendMessage(new Message("God", "Please enter your name"));
             Message message = receiveMessage();
@@ -74,11 +209,7 @@ public class ClientHandler extends Thread {
                 break;
             }
         }
-        this.isLoggedIn = true;
-    }
-
-
-    private void ready() {
+        // ready part
         while (true) {
             sendMessage(new Message("God", "Please enter" +
                     " (ready) if you are ready to start the game"));
@@ -86,100 +217,34 @@ public class ClientHandler extends Thread {
             if (message.getText().equals("ready")) {
 
                 sendMessage(new Message("God", "Done"));
-                isReady = true;
                 break;
 
             } else {
                 sendMessage(new Message("God", " :|"));
             }
         }
-
-        // if all the clients are ready break
-        while (true) {
-            if (allReady()) {
-                break;
-            }
-        }
-    }
-
-
-    public static boolean allReady() {
-
-        if (clients.size() < numberOfClients) {
-            return false;
-        }
-
-        for (ClientHandler c : clients) {
-            if (!c.isReady) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    public void setRole(Roles role) {
-        this.role = role;
-    }
-
-    private void sendMessage(Message message) {
-        try {
-            output.writeObject(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private Message receiveMessage() {
-        Message message = null;
-        try {
-            message = (Message) input.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return message;
+        this.isLoggedIn = true;
     }
 
 
     private void sendRole() {
-        try {
-            output.writeObject(this.role);
-            output.writeObject(new Message("God", "You are " + this.role.toString()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println("send the role to " + clientName);
+        sendMessage(new Message("God", "You are " + this.role.toString()));
+        sendRole = true;
     }
 
-    private void waitClientHandler() {
-        synchronized (this) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public Roles getRole() {
-        return role;
-    }
-
-    public String getClientName() {
-        return clientName;
-    }
 
     private void introduce() {
-        try {
-            sendMessage(new Message("God", "The introduction night starts."));
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
+
+        sendMessage(new Message("God", "The introduction night starts."));
+        sleepThread(3000);
+
         String text = "";
         // if the client is mafia
-        if (Roles.isMafia(role)) {
+        if (Role.isMafia(role)) {
             for (ClientHandler c : clients) {
-                if (c != this && Roles.isMafia(c.getRole())) {
+                if (c != this && Role.isMafia(c.getRole())) {
                     text += c.getClientName() + " is " + c.getRole() + ". ";
                 }
             }
@@ -187,260 +252,82 @@ public class ClientHandler extends Thread {
         }
 
         // if client is mayor
-        if (role == Roles.Mayor) {
+        if (role == Role.Mayor) {
             for (ClientHandler c : clients) {
-                if (c.getRole() == Roles.Doctor) {
+                if (c.getRole() == Role.Doctor) {
                     sendMessage(new Message("God", c.getClientName() + " is " + c.getRole()));
                     break;
                 }
             }
         }
 
-
+        introduced = true;
         sendMessage(new Message("God", "The night is over"));
     }
 
-    private void dayChatroom() {
 
+    private void chatIntro() {
+        sendMessage(new Message("God", "Now the day starts and it's chat time. It will take 5 min" +
+                "ute last, if you get ready for the voting at any time just enter (ready) and wait for " +
+                "the others"));
+        sleepThread(2000);
 
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (isSilent) { // TODO i think that you should consider other factors for not chatting
+            isReady = true;
+            sendMessage(new Message("God", "You can not chat"));
         }
 
-
-        // make all states not ready again for using in the chat ready
         for (ClientHandler c : clients)
             c.isReady = false;
 
-
-        // make every one awake
-        isAwake = true;
-        // make the time to dayChat
-        dayChat = true;
-        // TODO dayChat should set false in the game to stop chat
-
-        sendMessage(new Message("God", "Now the day starts and it's chat time. It will take 5 min" +
-                "ut last, if you get ready for the voting at any time just enter (ready) and wait for " +
-                "the others"));
+        chatStarted = true;
+    }
 
 
-        class Chatting extends Thread {
-            @Override
-            public void run() {
+    private void chat() {
+        Message message = receiveMessage();
 
-                if (!canChat()) { // TODO if a client is silent, it should be set in the client too ( as a field )
+        if(mode == Mode.DayChatroom) {
+            if (isSilent) {
+                sendMessage(new Message("God", "As I just said, you can not chat"));
+            } else {
+                if (message.getText().equals("ready")) {
                     isReady = true;
-                    sendMessage(new Message("God", "You can not chat"));
-                    while (!this.isInterrupted()) {
-                        if (receiveMessage() != null)
-                            sendMessage(new Message("God", "As I just said, you can not chat"));
-                    }
+                    sendToOthers(new Message("God", clientName + " is ready."));
                 } else {
-                    while (!this.isInterrupted()) {
-                        Message message = receiveMessage();
-                        if (message.getText().equals("ready")) {
-                            isReady = true;
-                            sendToOthers(new Message("God", clientName + " is ready."));
-                            continue;
-                        }
-                        sendToOthers(message);
-                    }
+                    message.setName(clientName);
+                    sendToOthers(message);
                 }
             }
         }
-
-
-
-        chatThread = new Thread(new Chatting());
-        chatThread.start();
-
-        // after it gets out of the while loop
-        while (!chatIsEndForAll()) {
-
-        }
-
-        sendMessage(new Message("God", "The chat is over"));
-
     }
 
-
-    public Thread getChatThread() {
-        return chatThread;
-    }
-
-    private boolean chatIsEndForAll() {
-        for (ClientHandler c : clients) {
-            try {
-                if (c.getChatThread().isAlive())
-                    return false;
-            } catch (NullPointerException e) {
-                return false; // TODO this part is new
-            }
-        }
-        return true;
-    }
-
-
-    public boolean isReady() {
-        return isReady;
-    }
-
-    // TODO this method should be updated in the future
-    private boolean canChat() {
-        return !isSilent && isAwake && isLoggedIn;
-    }
-
-
-    // TODO this method should check booleans so carefully, every condition should be checked
-    private void sendToOthers(Message message) {
-        for (ClientHandler c : clients) {
-            if (c != this)
-                c.sendMessage(message);
-        }
-    }
-
-    public void setDayChat(boolean dayChat) {
-        this.dayChat = dayChat;
-    }
-
-    private boolean isClientName(String text) {
-        for (ClientHandler c : clients) {
-            if (c.isLoggedIn) {
-                if (c.getClientName().equals(text))
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    private String makeAListOfClients() {
-        String s = "";
-        int i = 1;
-        for (ClientHandler c : clients) {
-            if (c.isLoggedIn) {
-                s += i + ". " + c.getClientName() + " ";
-            }
-        }
-        return s;
-    }
-
-
-    private void updateVoteHashMap(Message v, HashMap<String, Integer> votes) {
-        try {
-            String name = v.getText();
-            votes.put(name, votes.get(name) + 1);
-        } catch (NullPointerException ignored) {
-
-        }
-    }
-
-
-    private void vote() {
-
+    private void voteIntro() {
+        // put all the clients in the hashMap
         for (ClientHandler c : clients) {
             votesList.put(c.getClientName(), 0);
         }
 
-        Message[] v = {null};
 
-        class Voting extends Thread {
+        sendMessage(new Message("God", "The voting is starting."));
+        sleepThread(1000);
+        sendMessage(new Message("God", "The list of current players :\n" +
+                makeAListOfClients() + "\nEnter name of the player, you think is mafia."));
 
+        voteStarted = true;
+    }
 
-            @Override
-            public void run() {
+    private void vote() {
 
-
-                sendMessage(new Message("God", "The voting is starting."));
-
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                sendMessage(new Message("God", "The list of current players :\n" +
-                        makeAListOfClients() + "\nEnter name of the player, you think is mafia."));
-
-
-                while (true) {
-                    Message message = receiveMessage();
-                    if (isClientName(message.getText())) {
-                        v[0] = message;
-                        sendMessage(new Message("God", "Done"));
-                        sendToOthers(new Message(clientName, "I vote to " + v[0].getText() + "."));
-                        continue;
-                    }
-                    sendMessage(new Message("God", ":|"));
-                }
+        Message message = receiveMessage();
+        if (mode == Mode.Vote) {
+            if (isClientName(message.getText())) {
+                sendMessage(new Message("God", "Done"));
+                sendToOthers(new Message(clientName, "I vote to " + message.getText() + "."));
+            } else {
+                sendMessage(new Message("God", ":|"));
             }
         }
 
-        updateVoteHashMap(v[0], votesList);
-
-
-        voteThread = new Thread(new Voting());
-        voteThread.start();
-        while (!endVoteThreads()) {
-
-        }
-
-        sendMessage(new Message("God", "The voting ends"));
-    }
-
-
-    private boolean endVoteThreads() {
-        for (ClientHandler c : clients) {
-            try {
-                if (c.getVoteThread().isAlive())
-                    return false;
-            } catch (NullPointerException e) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public Thread getVoteThread() {
-        return voteThread;
-    }
-
-
-    @Override
-    public void run() {
-
-        enterName();
-        ready();
-        // waiting for setting roles by game
-        waitClientHandler();
-        // now a message should be sent to the clients and also the role of each client as an object
-        sendRole();
-        // the introduction night
-        introduce();
-        // start the day
-        // TODO i guess that this parts should be in a loop
-        // wait, the game will notify
-        waitClientHandler();
-        // the day starts with chatting between clients
-        dayChatroom();
-        // wait, the game will notify again
-        waitClientHandler();
-        // start the vote
-        vote();
-
-        // this part is for chatroom between player and should be a method i guess
-        /*try {
-            while (true) {
-                Message message = (Message) input.readObject();
-                handleMessage(message);
-            }
-        } catch (IOException | ClassNotFoundException e) {
-
-        }*/
-    }
-
-    public ObjectOutputStream getOutput() {
-        return output;
     }
 }

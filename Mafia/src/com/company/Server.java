@@ -1,12 +1,8 @@
 package com.company;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -25,8 +21,6 @@ public class Server {
         } catch (IOException e) {
 
         }
-
-
     }
 
     private void accepting() {
@@ -42,37 +36,19 @@ public class Server {
 
         }
     }
-    // TODO refactor the method
-    private void moreClientsMessage(){
-        try {
-            while (true) {
-                Socket s = serverSocket.accept();
-                ObjectOutputStream output = new ObjectOutputStream(s.getOutputStream());
-                output.writeObject(new Message("God", numberOfClients + " clients has connected to" +
-                        " the server" +
-                        "so you can not connect"));
-            }
-        }
-        catch (IOException e){
-            e.printStackTrace();
-        }
-    }
 
 
 
-
-    public void startServer() {
-
+    private void startServer(){
         // accepting clients
         accepting();
-        // TODO refactoring the moreClientsMessage method
+        // TODO more client coming
         // moreClientsMessage();
         // create a game object
         Game game = new Game(clients, numberOfClients);
         Thread gameThread = new Thread(game);
         gameThread.start();
     }
-
 
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);

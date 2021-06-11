@@ -1,13 +1,12 @@
 package com.company;
 
-
 import java.io.Serializable;
 
-public enum Roles implements Serializable {
+public enum Role implements Serializable {
     GodFather, DoctorLecter, SimpleMafia, Doctor, Detective, Sniper, SimpleVillager, Mayor,
     Psychologist, Diehard ;
 
-    public static boolean isMafia(Roles role){
+    public static boolean isMafia(Role role){
         switch (role){
             case GodFather:
             case  DoctorLecter:
