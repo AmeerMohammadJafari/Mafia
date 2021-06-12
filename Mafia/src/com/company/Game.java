@@ -1,5 +1,7 @@
 package com.company;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 public class Game extends Thread{
@@ -9,11 +11,18 @@ public class Game extends Thread{
     private Vector<ClientHandler> villagers;
     private static int numberOfClients;
     private ClientHandler removed;
+    private boolean mayorConfirmation;
 
     public Game(Vector<ClientHandler> clients, int numberOfClients) {
         this.clients = clients;
         Game.numberOfClients = numberOfClients;
         removed = null;
+        villagers = new Vector<>();
+        mafias = new Vector<>();
+    }
+
+    public void setMayorConfirmation(boolean mayorConfirmation) {
+        this.mayorConfirmation = mayorConfirmation;
     }
 
     private void sleepThread(int time){
@@ -86,7 +95,7 @@ public class Game extends Thread{
     public void setRoles() {
 
         while(numberOfClients != clients.size()){
-
+            sleepThread(1000);
         }
 
         ArrayList<Role> roles = new ArrayList<>();
@@ -110,9 +119,65 @@ public class Game extends Thread{
         for (int i = 0; i < numberOfClients; i++) {
             clients.get(i).setRole(roles.get(i));
         }
-        /*for (ClientHandler c : clients)
-            if (c.getRole() == Role.Diehard)
-                c.setHealth(2);*/ //TODO this part should be added when you have create the role classes
+
+        for(ClientHandler c : clients){
+            ObjectOutputStream output = c.getOutput();
+            ObjectInputStream input = c.getInput();
+            String clientName = c.getClientName();
+
+            switch (c.getRole()) {
+                case Mayor -> {
+                    c.setCharacter(new Mayor(output, input, c, this));
+                    villagers.add(c);
+                }
+
+                case Psychologist -> {
+                    c.setCharacter(new Psychologist(output, input, c, this));
+                    villagers.add(c);
+                }
+
+                case Diehard -> {
+                    c.setCharacter(new Diehard(output, input, c, this));
+                    villagers.add(c);
+                }
+
+                case Sniper -> {
+                    c.setCharacter(new Sniper(output, input, c, this));
+                    villagers.add(c);
+                }
+
+                case Detective -> {
+                    c.setCharacter(new Detective(output, input, c, this));
+                    villagers.add(c);
+                }
+
+                case Doctor -> {
+                    c.setCharacter(new Doctor(output, input, c, this));
+                    villagers.add(c);
+                }
+
+                case DoctorLecter -> {
+                    c.setCharacter(new DoctorLecter(output, input, c, this));
+                    mafias.add(c);
+                }
+
+                case GodFather -> {
+                    c.setCharacter(new GodFather(output, input, c, this));
+                    mafias.add(c);
+                }
+
+                case SimpleMafia -> {
+                    c.setCharacter(new SimpleMafia(output, input, c, this));
+                    mafias.add(c);
+                }
+
+                case SimpleVillager -> {
+                    c.setCharacter(new SimpleVillager(output, input, c, this));
+                    villagers.add(c);
+                }
+            }
+
+        }
     }
 
     private void sendToAll(Message message){
@@ -216,8 +281,6 @@ public class Game extends Thread{
 
 
 
-        System.out.println("passing the last loop in the endVote");
-
     }
 
     private void resultOfVote(){
@@ -238,7 +301,6 @@ public class Game extends Thread{
                 try {
                     voteMap.put(c.getMyVote(), voteMap.get(c.getMyVote()) + 1);
                 }catch (NullPointerException e){
-                    System.out.println("empty vote");
                 }
             }
         }
@@ -255,7 +317,45 @@ public class Game extends Thread{
 
 
         assert removed != null;
-        sendToAll(new Message("God", removed.getClientName() + " has to leave the game"));
+        sendToAll(new Message("God", removed.getClientName() + " has the most votes"));
+        ClientHandler.setMode(Mode.MayorTime);
+    }
+
+    public void mayorTime(){
+
+        ClientHandler mayor = null;
+
+        for(ClientHandler c : clients){
+            if(c.getRole() == Role.Mayor)
+                mayor = c;
+        }
+
+        assert mayor != null; // TODO take care
+        Character character = mayor.getCharacter();
+
+        // loop until mayor done his behaviour
+        while(!character.behaviourDone){
+            sleepThread(1000);
+        }
+
+        if(mayorConfirmation){
+            sendToAll(new Message("God", "The mayor confirmed the vote"));
+            sleepThread(1000);
+            sendToAll(new Message("God", removed.getClientName() + " is removed."));
+            // TODO should be removed from the game
+        }
+        else{
+            sendToAll(new Message("God", "The mayor rejects the voting"));
+            sleepThread(1000);
+            sendToAll(new Message("God","So " + removed.getClientName() + "is still " +
+                    "with us"));
+            removed = null;
+        }
+
+
+
+
+
     }
 
 
@@ -278,11 +378,11 @@ public class Game extends Thread{
 
         endChat(); // it sets the game mode to vote internally
 
-        endVote();
+        endVote(); // it sets the game to the resultOfVote internally
 
         resultOfVote();
 
-
+        mayorTime();
 
 
 

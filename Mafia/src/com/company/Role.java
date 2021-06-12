@@ -2,7 +2,8 @@ package com.company;
 
 import java.io.Serializable;
 
-public enum Role implements Serializable {
+public enum Role {
+
     GodFather, DoctorLecter, SimpleMafia, Doctor, Detective, Sniper, SimpleVillager, Mayor,
     Psychologist, Diehard ;
 

@@ -33,7 +33,7 @@ public class Client {
         try {
             message = (Message) input.readObject();
             System.out.println(message.getName() + " : " + message.getText());
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException | NullPointerException e) {
             e.printStackTrace();
         }
         return message;

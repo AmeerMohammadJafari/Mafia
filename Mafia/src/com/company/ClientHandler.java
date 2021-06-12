@@ -24,6 +24,9 @@ public class ClientHandler extends Thread {
     private boolean chatStarted;
     private boolean voteStarted;
     private ClientHandler myVote;
+    private Character character;
+    private int health;
+    private boolean mayorIntro;
 
 
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
@@ -41,6 +44,8 @@ public class ClientHandler extends Thread {
         sendRole = false;
         introduced = false;
         myVote = null;
+        character = null;
+        mayorIntro = false;
 
         try {
             output = new ObjectOutputStream(socket.getOutputStream());
@@ -50,6 +55,27 @@ public class ClientHandler extends Thread {
         }
     }
 
+
+    public Character getCharacter() {
+        return character;
+    }
+
+    public ObjectOutputStream getOutput() {
+        return output;
+    }
+
+    public ObjectInputStream getInput() {
+        return input;
+    }
+
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public void setCharacter(Character character) {
+        this.character = character;
+    }
 
     public boolean isVoteStarted() {
         return voteStarted;
@@ -201,8 +227,15 @@ public class ClientHandler extends Thread {
                 sleepThread(1000);
                 // the game will handle this part
             }
-            else if(mode == Mode.VoteBehaviour){
+            else if(mode == Mode.MayorTime){
+                if(!mayorIntro)
+                    mayorTimeIntro();
 
+                if(role == Role.Mayor)
+                    character.behaviour();
+                else{
+                    notYourTurn();
+                }
             }
 
 
@@ -362,6 +395,19 @@ public class ClientHandler extends Thread {
         }
     }
 
+    private void mayorTimeIntro(){
 
+        sendMessage(new Message("God","Now the Mayor has to decide confirm or reject " +
+                "the vote result"));
+        sleepThread(2000);
+        sendMessage(new Message("God","Wait till mayor decides."));
 
+        mayorIntro = true;
+
+    }
+
+    private void notYourTurn(){
+        receiveMessage();
+        sendMessage(new Message("God","Not your turn"));
+    }
 }
