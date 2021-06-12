@@ -13,6 +13,7 @@ public class ClientHandler extends Thread {
     private static int numberOfClients;
     private ObjectOutputStream output;
     private ObjectInputStream input;
+    private Socket socket;
     private String clientName;
     private boolean isReady;
     private Role role;
@@ -27,6 +28,8 @@ public class ClientHandler extends Thread {
     private Character character;
     private int health;
     private boolean mayorIntro;
+    private boolean isAlive; // TODO must handle this field very carefully
+    private boolean consultStarted;
 
 
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
@@ -46,8 +49,11 @@ public class ClientHandler extends Thread {
         myVote = null;
         character = null;
         mayorIntro = false;
+        isAlive = false;
+        consultStarted = false;
 
         try {
+            this.socket = socket;
             output = new ObjectOutputStream(socket.getOutputStream());
             input = new ObjectInputStream(socket.getInputStream());
         } catch (IOException e) {
@@ -55,6 +61,15 @@ public class ClientHandler extends Thread {
         }
     }
 
+
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setAlive(boolean alive) {
+        isAlive = alive;
+    }
 
     public Character getCharacter() {
         return character;
@@ -137,7 +152,7 @@ public class ClientHandler extends Thread {
         }
     }
 
-    private Message receiveMessage() {
+    public Message receiveMessage() {
         Message message = null;
         try {
             message = (Message) input.readObject();
@@ -234,7 +249,33 @@ public class ClientHandler extends Thread {
                 if(role == Role.Mayor)
                     character.behaviour();
                 else{
-                    notYourTurn();
+                    receiveMessage();
+                    if(mode != Mode.MayorTime){
+                        sleepThread(1000);
+                        continue;
+                    }
+                    sendMessage(new Message("God","Mayor Time, Can not say anything :|"));
+                }
+                sleepThread(1000);
+            }
+            else if(mode == Mode.RemoveByVote){
+                sleepThread(1000);
+                // the game will handle this part
+            }
+            else if(mode == Mode.ConsultOfMafias){
+
+                if(consultStarted)
+                    consultIntro();
+                if(Role.isMafia(role)){
+                    character.consultInNight(); // TODO implement this part in mafia
+                }
+                else{
+                    receiveMessage();
+                    if(mode != Mode.ConsultOfMafias){
+                        sleepThread(1000);
+                        continue;
+                    }
+                    sendMessage(new Message("God","Not your turn"));
                 }
             }
 
@@ -406,8 +447,8 @@ public class ClientHandler extends Thread {
 
     }
 
-    private void notYourTurn(){
-        receiveMessage();
-        sendMessage(new Message("God","Not your turn"));
+    private void consultIntro(){
+
     }
+
 }

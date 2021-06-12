@@ -16,6 +16,8 @@ public class Mayor extends Character{
 
     @Override
     public void behaviour() {
+        if(behaviourDone)
+            return;
 
         while(true) {
             sendMessage(new Message("God", "Write (confirm) or (reject)."));

@@ -2,6 +2,7 @@ package com.company;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Scanner;
 
 public class Client {
@@ -33,7 +34,10 @@ public class Client {
         try {
             message = (Message) input.readObject();
             System.out.println(message.getName() + " : " + message.getText());
-        } catch (IOException | ClassNotFoundException | NullPointerException e) {
+        } catch (EOFException e){
+            System.exit(0);
+        }
+        catch (IOException | ClassNotFoundException | NullPointerException e) {
             e.printStackTrace();
         }
         return message;
@@ -52,30 +56,27 @@ public class Client {
         return message;
     }
 
-    private void justSendMessage(){
-        try{
+    private void justSendMessage() {
+        try {
             output.writeObject(new Message(""));
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
 
+    private void startClient() {
 
 
-    private void startClient(){
-
-
-        class GetMessageOnly extends Thread{
+        class GetMessageOnly extends Thread {
             @Override
             public void run() {
-                while(true) {
+                while (true) {
                     Message message = receiveMessage();
-
-                    if(message.getName().equals("God") &&
+                    if (message.getName().equals("God") &&
                             (message.getText().equals("The chat is over.") ||
-                                    message.getText().equals("The vote is over."))){
+                                    message.getText().equals("The vote is over.") ||
+                                    message.getText().equals("MayorTime ends."))) {
 
                         justSendMessage();
                     }
@@ -83,10 +84,10 @@ public class Client {
             }
         }
 
-        class SendMessageOnly extends Thread{
+        class SendMessageOnly extends Thread {
             @Override
             public void run() {
-                while(true){
+                while (true) {
                     Message message = sendMessage();
                 }
             }

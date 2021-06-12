@@ -1,5 +1,6 @@
 package com.company;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
@@ -10,15 +11,17 @@ public class Game extends Thread{
     private Vector<ClientHandler> mafias;
     private Vector<ClientHandler> villagers;
     private static int numberOfClients;
-    private ClientHandler removed;
+    private ClientHandler removedByVote;
     private boolean mayorConfirmation;
+    private ArrayList<Role> removedRoles;
 
     public Game(Vector<ClientHandler> clients, int numberOfClients) {
         this.clients = clients;
         Game.numberOfClients = numberOfClients;
-        removed = null;
+        removedByVote = null;
         villagers = new Vector<>();
         mafias = new Vector<>();
+        removedRoles = new ArrayList<>();
     }
 
     public void setMayorConfirmation(boolean mayorConfirmation) {
@@ -310,14 +313,14 @@ public class Game extends Thread{
         int maxVote = Collections.max(voteMap.values());
         for(ClientHandler c : voteMap.keySet()){
             if(voteMap.get(c) == maxVote){
-                removed = c;
+                removedByVote = c;
                 break;
             }
         }
 
 
-        assert removed != null;
-        sendToAll(new Message("God", removed.getClientName() + " has the most votes"));
+        assert removedByVote != null;
+        sendToAll(new Message("God", removedByVote.getClientName() + " has the most votes"));
         ClientHandler.setMode(Mode.MayorTime);
     }
 
@@ -330,32 +333,78 @@ public class Game extends Thread{
                 mayor = c;
         }
 
-        assert mayor != null; // TODO take care
-        Character character = mayor.getCharacter();
+        Character character = null;
+        try {
+            character = mayor.getCharacter();
+        }catch (NullPointerException e){
+            // TODO when there is no mayor in the game
+            sleepThread(10 * 1000);
+            sendToAll(new Message("God", "The mayor confirmed the vote"));
+            sleepThread(1000);
+            sendToAll(new Message("God", removedByVote.getClientName() + " is removed."));
+            ClientHandler.setMode(Mode.RemoveByVote);
+            sleepThread(500);
+            sendToAll(new Message("God", "MayorTime ends."));
+            return;
+        }
 
         // loop until mayor done his behaviour
         while(!character.behaviourDone){
             sleepThread(1000);
+
         }
 
         if(mayorConfirmation){
             sendToAll(new Message("God", "The mayor confirmed the vote"));
             sleepThread(1000);
-            sendToAll(new Message("God", removed.getClientName() + " is removed."));
-            // TODO should be removed from the game
+            sendToAll(new Message("God", removedByVote.getClientName() + " is removed."));
+
+            ClientHandler.setMode(Mode.RemoveByVote);
         }
         else{
             sendToAll(new Message("God", "The mayor rejects the voting"));
             sleepThread(1000);
-            sendToAll(new Message("God","So " + removed.getClientName() + "is still " +
+            sendToAll(new Message("God","So " + removedByVote.getClientName() + " is still " +
                     "with us"));
-            removed = null;
+            removedByVote = null;
+            ClientHandler.setMode(Mode.ConsultOfMafias);
         }
+        sleepThread(500);
+        sendToAll(new Message("God", "MayorTime ends.")); // handles the sticking in the client
+    }
 
+    private void removeByVote(){
+        // the game will enter this method if there is a removedByVote client
+        if(removedByVote != null){
 
+            removedByVote.sendMessage(new Message("God", "You are removedByVote from the game :("));
+            sleepThread(1000);
+            removedByVote.sendMessage(new Message("God", "If you still want to follow the game " +
+                    "events, enter (follow) else enter (quit) if you want to quit the game"));
 
+            while (true) {
+                Message message = removedByVote.receiveMessage();
+                if (message.getText().equals("follow")) {
+                    removedByVote.sendMessage(new Message("God", "So you can only watch"));
+                    removedByVote.setAlive(false);
+                    removedRoles.add(removedByVote.getRole());
+                    break;
+                } else if (message.getText().equals("quit")) {
+                    removedRoles.add(removedByVote.getRole());
+                    clients.remove(removedByVote);
+                    try {
+                        removedByVote.getSocket().close();
+                    }catch (IOException e){
 
-
+                    }
+                    break;
+                } else {
+                    removedByVote.sendMessage(new Message("God", ":|"));
+                }
+            }
+        }
+        removedByVote = null;
+        ClientHandler.setMode(Mode.ConsultOfMafias);
     }
 
 
@@ -384,6 +433,7 @@ public class Game extends Thread{
 
         mayorTime();
 
+        removeByVote(); // enter this method when a client is removedByVote
 
 
 
