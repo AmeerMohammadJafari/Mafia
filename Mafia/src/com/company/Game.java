@@ -24,6 +24,10 @@ public class Game extends Thread{
         removedRoles = new ArrayList<>();
     }
 
+    public Vector<ClientHandler> getClients() {
+        return clients;
+    }
+
     public void setMayorConfirmation(boolean mayorConfirmation) {
         this.mayorConfirmation = mayorConfirmation;
     }
@@ -34,6 +38,20 @@ public class Game extends Thread{
         }catch (InterruptedException e){
             e.printStackTrace();
         }
+    }
+
+    public String mafiasList(){
+        String list = "";
+        int i = 1;
+        for(ClientHandler c : clients){
+            synchronized (c){
+                if(Role.isMafia(c.getRole())){
+                    list += i + ". " + c.getClientName();
+                    i++;
+                }
+            }
+        }
+        return list;
     }
 
     private boolean allAreLoggedIn(){
@@ -207,6 +225,15 @@ public class Game extends Thread{
         }
     }
 
+    private boolean allMafiasVoteDone(){
+        for(ClientHandler c : clients){
+            if(c.isAlive() && !c.getCharacter().getMafiasVoteTimeBehaviour().behaviourDone)
+                return false;
+        }
+        return true;
+    }
+
+
     private void endChat(){
 
         loopUntilChatIntro();
@@ -261,7 +288,6 @@ public class Game extends Thread{
 
         loopUntilVoteStart();
 
-        System.out.println("The first part of the endVote method, just before setting the timer");
 
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
@@ -345,13 +371,13 @@ public class Game extends Thread{
             ClientHandler.setMode(Mode.RemoveByVote);
             sleepThread(500);
             sendToAll(new Message("God", "MayorTime ends."));
+            sleepThread(3000);
             return;
         }
 
         // loop until mayor done his behaviour
-        while(!character.behaviourDone){
+        while(!character.getMayorTimeBehaviour().behaviourDone){
             sleepThread(1000);
-
         }
 
         if(mayorConfirmation){
@@ -367,10 +393,11 @@ public class Game extends Thread{
             sendToAll(new Message("God","So " + removedByVote.getClientName() + " is still " +
                     "with us"));
             removedByVote = null;
-            ClientHandler.setMode(Mode.ConsultOfMafias);
+            ClientHandler.setMode(Mode.MafiasVote);
         }
         sleepThread(500);
         sendToAll(new Message("God", "MayorTime ends.")); // handles the sticking in the client
+        sleepThread(3000);
     }
 
     private void removeByVote(){
@@ -404,9 +431,16 @@ public class Game extends Thread{
             }
         }
         removedByVote = null;
-        ClientHandler.setMode(Mode.ConsultOfMafias);
+        ClientHandler.setMode(Mode.MafiasVote);
     }
 
+    private void endConsult(){
+        while(!allMafiasVoteDone()){
+            sleepThread(1000);
+        }
+        ClientHandler.setMode(Mode.GodFatherTime);
+
+    }
 
     @Override
     public void run() {
@@ -434,6 +468,8 @@ public class Game extends Thread{
         mayorTime();
 
         removeByVote(); // enter this method when a client is removedByVote
+
+        endConsult();
 
 
 

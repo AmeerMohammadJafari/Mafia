@@ -7,11 +7,14 @@ import java.util.Vector;
 
 public abstract class Character {
 
+
     protected ObjectOutputStream output;
     protected ObjectInputStream input;
     protected ClientHandler client;
     protected Game game;
-    protected boolean behaviourDone;
+    protected Behaviour mayorTimeBehaviour;
+    protected MafiasVoteTimeBehaviour mafiasVoteTimeBehaviour;
+
 
     public Character(ObjectOutputStream output, ObjectInputStream input,
                      ClientHandler client, Game game){
@@ -19,33 +22,32 @@ public abstract class Character {
         this.output = output;
         this.input = input;
         this.client = client;
-        behaviourDone = false;
         this.game = game;
         client.setHealth(1);
     }
 
-    protected void sendMessage(Message message) {
-        try {
-            output.writeObject(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public ObjectOutputStream getOutput() {
+        return output;
     }
 
-    protected Message receiveMessage() {
-        Message message = null;
-        try {
-            message = (Message) input.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return message;
+    public ObjectInputStream getInput() {
+        return input;
     }
 
+    public ClientHandler getClient() {
+        return client;
+    }
 
-    public abstract void behaviour();
+    public Game getGame() {
+        return game;
+    }
 
-    public abstract void consultInNight();
+    public Behaviour getMayorTimeBehaviour() {
+        return mayorTimeBehaviour;
+    }
 
+    public MafiasVoteTimeBehaviour getMafiasVoteTimeBehaviour() {
+        return mafiasVoteTimeBehaviour;
+    }
 }
 

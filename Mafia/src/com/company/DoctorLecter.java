@@ -2,21 +2,18 @@ package com.company;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Vector;
 
-public class DoctorLecter extends Mafia{
-
-    private int treat;
+public class DoctorLecter extends Character{
 
     public DoctorLecter(ObjectOutputStream output, ObjectInputStream input,
                      ClientHandler client,Game game){
         super(output, input, client, game);
-        treat = 1;
-    }
 
-    @Override
-    public void behaviour() {
+        mayorTimeBehaviour = new NonMayorTreat(this);
+        mafiasVoteTimeBehaviour = new MafiasVoteTreat(this);
 
     }
+
+
 
 }

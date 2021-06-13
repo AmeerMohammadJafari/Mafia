@@ -10,17 +10,11 @@ public class Sniper extends Character{
     public Sniper(ObjectOutputStream output, ObjectInputStream input,
                      ClientHandler client,Game game){
         super(output, input, client, game);
+
+        mayorTimeBehaviour = new NonMayorTreat(this);
+        mafiasVoteTimeBehaviour = new NonMafiasTreat(this);
     }
 
 
 
-    @Override
-    public void consultInNight() {
-
-    }
-
-    @Override
-    public void behaviour() {
-
-    }
 }

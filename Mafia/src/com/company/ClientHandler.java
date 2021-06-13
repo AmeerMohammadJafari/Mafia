@@ -49,7 +49,7 @@ public class ClientHandler extends Thread {
         myVote = null;
         character = null;
         mayorIntro = false;
-        isAlive = false;
+        isAlive = true;
         consultStarted = false;
 
         try {
@@ -60,7 +60,6 @@ public class ClientHandler extends Thread {
 
         }
     }
-
 
 
     public Socket getSocket() {
@@ -189,18 +188,16 @@ public class ClientHandler extends Thread {
         return s;
     }
 
-    private ClientHandler isClientName(String text) {
+    public static ClientHandler isClientName(String text) {
         for (ClientHandler c : clients) {
             if (c.isLoggedIn) {
-                if (c.getClientName().equals(text)) {
+                if (c.getClientName().equals(text) && c.isAlive) {
                     return c;
                 }
             }
         }
         return null;
     }
-
-
 
 
     @Override
@@ -237,50 +234,27 @@ public class ClientHandler extends Thread {
                     voteIntro();
                 }
                 vote();
-            }
-            else if(mode == Mode.ResultOfVote){
+            } else if (mode == Mode.ResultOfVote) {
                 sleepThread(1000);
                 // the game will handle this part
-            }
-            else if(mode == Mode.MayorTime){
-                if(!mayorIntro)
+            } else if (mode == Mode.MayorTime) {
+                if (!mayorIntro)
                     mayorTimeIntro();
-
-                if(role == Role.Mayor)
-                    character.behaviour();
-                else{
-                    receiveMessage();
-                    if(mode != Mode.MayorTime){
-                        sleepThread(1000);
-                        continue;
-                    }
-                    sendMessage(new Message("God","Mayor Time, Can not say anything :|"));
-                }
-                sleepThread(1000);
-            }
-            else if(mode == Mode.RemoveByVote){
+                character.getMayorTimeBehaviour().run();
+            } else if (mode == Mode.RemoveByVote) {
                 sleepThread(1000);
                 // the game will handle this part
-            }
-            else if(mode == Mode.ConsultOfMafias){
+            } else if (mode == Mode.MafiasVote) {
 
-                if(consultStarted)
+                if (!consultStarted)
                     consultIntro();
-                if(Role.isMafia(role)){
-                    character.consultInNight(); // TODO implement this part in mafia
-                }
-                else{
-                    receiveMessage();
-                    if(mode != Mode.ConsultOfMafias){
-                        sleepThread(1000);
-                        continue;
-                    }
-                    sendMessage(new Message("God","Not your turn"));
-                }
+                if (!character.getMafiasVoteTimeBehaviour().behaviourDone)
+                    character.getMafiasVoteTimeBehaviour().run();
+                sleepThread(1000);
             }
+            else if(mode == Mode.GodFatherTime){
 
-
-
+            }
 
 
         }
@@ -421,10 +395,9 @@ public class ClientHandler extends Thread {
         if (mode == Mode.Vote) {
             if (isClientName(message.getText()) != null) {
 
-                if(message.getText().equals(clientName)){
+                if (message.getText().equals(clientName)) {
                     sendMessage(new Message("God", "You can not vote to yourself :|"));
-                }
-                else {
+                } else {
                     myVote = isClientName(message.getText());
                     sendMessage(new Message("God", "Done"));
                     sendToOthers(new Message(clientName, "I vote to " + message.getText() + "."));
@@ -436,19 +409,24 @@ public class ClientHandler extends Thread {
         }
     }
 
-    private void mayorTimeIntro(){
+    private void mayorTimeIntro() {
 
-        sendMessage(new Message("God","Now the Mayor has to decide confirm or reject " +
+        sendMessage(new Message("God", "Now the Mayor has to decide confirm or reject " +
                 "the vote result"));
         sleepThread(2000);
-        sendMessage(new Message("God","Wait till mayor decides."));
+        sendMessage(new Message("God", "Wait till mayor decides."));
 
         mayorIntro = true;
 
     }
 
-    private void consultIntro(){
-
+    private void consultIntro() {
+        sendMessage(new Message("God", "The night starts."));
+        sleepThread(1000);
+        sendMessage(new Message("God", "Mafias consult time"));
+        sleepThread(1000);
+        sendMessage(new Message("God", "Now mafias have to decide who should be killed"));
+        consultStarted = true;
     }
 
 }

@@ -10,17 +10,11 @@ public class Psychologist extends Character{
     public Psychologist(ObjectOutputStream output, ObjectInputStream input,
                      ClientHandler client,Game game){
         super(output, input, client, game);
+
+        mayorTimeBehaviour = new NonMayorTreat(this);
+        mafiasVoteTimeBehaviour = new NonMafiasTreat(this);
     }
 
 
-    @Override
-    public void behaviour() {
-
-    }
-
-    @Override
-    public void consultInNight() {
-
-    }
 
 }

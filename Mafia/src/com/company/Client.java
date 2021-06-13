@@ -37,7 +37,10 @@ public class Client {
         } catch (EOFException e){
             System.exit(0);
         }
-        catch (IOException | ClassNotFoundException | NullPointerException e) {
+        catch (StreamCorruptedException e){
+            e.printStackTrace();
+        }
+        catch (IOException | ClassNotFoundException | NullPointerException | ClassCastException e) {
             e.printStackTrace();
         }
         return message;
@@ -73,12 +76,16 @@ public class Client {
             public void run() {
                 while (true) {
                     Message message = receiveMessage();
-                    if (message.getName().equals("God") &&
-                            (message.getText().equals("The chat is over.") ||
-                                    message.getText().equals("The vote is over.") ||
-                                    message.getText().equals("MayorTime ends."))) {
+                    try {
+                        if (message.getName().equals("God") &&
+                                (message.getText().equals("The chat is over.") ||
+                                        message.getText().equals("The vote is over.") ||
+                                        message.getText().equals("MayorTime ends."))) {
 
-                        justSendMessage();
+                            justSendMessage();
+                        }
+                    }catch (NullPointerException e){
+                        e.printStackTrace();
                     }
                 }
             }
