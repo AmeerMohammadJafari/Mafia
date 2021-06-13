@@ -13,6 +13,7 @@ public class Diehard extends Character{
 
         mayorTimeBehaviour = new NonMayorTreat(this);
         mafiasVoteTimeBehaviour = new NonMafiasTreat(this);
+        godFatherTimeBehaviour = new NonGodFatherTreat(this);
     }
 
 }

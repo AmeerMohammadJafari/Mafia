@@ -5,7 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
-public class Game extends Thread{
+public class Game extends Thread {
 
     private Vector<ClientHandler> clients;
     private Vector<ClientHandler> mafias;
@@ -37,20 +37,20 @@ public class Game extends Thread{
         this.mayorConfirmation = mayorConfirmation;
     }
 
-    private void sleepThread(int time){
-        try{
+    private void sleepThread(int time) {
+        try {
             Thread.sleep(time);
-        }catch (InterruptedException e){
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    public String mafiasList(){
+    public String mafiasList() {
         String list = "";
         int i = 1;
-        for(ClientHandler c : clients){
-            synchronized (c){
-                if(Role.isMafia(c.getRole())){
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (Role.isMafia(c.getRole())) {
                     list += i + ". " + c.getClientName();
                     i++;
                 }
@@ -59,53 +59,53 @@ public class Game extends Thread{
         return list;
     }
 
-    private boolean allAreLoggedIn(){
-        if(clients.size() != numberOfClients){
+    private boolean allAreLoggedIn() {
+        if (clients.size() != numberOfClients) {
             return false;
         }
 
-        for(ClientHandler c : clients){
-            synchronized (c){
-                if(!c.isLoggedIn())
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (!c.isLoggedIn())
                     return false;
             }
         }
         return true;
     }
 
-    private void loopUntilAllLoggedIn(){
-        while(!allAreLoggedIn()){
+    private void loopUntilAllLoggedIn() {
+        while (!allAreLoggedIn()) {
             sleepThread(2000);
         }
     }
 
-    private boolean allSendRole(){
-        for(ClientHandler c : clients){
-            if(!c.isSendRole())
+    private boolean allSendRole() {
+        for (ClientHandler c : clients) {
+            if (!c.isSendRole())
                 return false;
         }
         return true;
     }
 
-    private void loopUntilAllSendRole(){
+    private void loopUntilAllSendRole() {
         sleepThread(1000);
-        while(!allSendRole()){
+        while (!allSendRole()) {
             sleepThread(2000);
         }
     }
 
-    private boolean allIntroduced(){
-        for(ClientHandler c : clients){
-            synchronized (c){
-                if(!c.isIntroduced())
+    private boolean allIntroduced() {
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (!c.isIntroduced())
                     return false;
             }
         }
         return true;
     }
 
-    private void loopUntilAllIntroduced(){
-        while(!allIntroduced()){
+    private void loopUntilAllIntroduced() {
+        while (!allIntroduced()) {
             sleepThread(2000);
         }
     }
@@ -120,7 +120,7 @@ public class Game extends Thread{
 
     public void setRoles() {
 
-        while(numberOfClients != clients.size()){
+        while (numberOfClients != clients.size()) {
             sleepThread(1000);
         }
 
@@ -146,7 +146,7 @@ public class Game extends Thread{
             clients.get(i).setRole(roles.get(i));
         }
 
-        for(ClientHandler c : clients){
+        for (ClientHandler c : clients) {
             ObjectOutputStream output = c.getOutput();
             ObjectInputStream input = c.getInput();
             String clientName = c.getClientName();
@@ -206,41 +206,41 @@ public class Game extends Thread{
         }
     }
 
-    private void sendToAll(Message message){
-        for(ClientHandler c : clients){
-            synchronized (c){
+    private void sendToAll(Message message) {
+        for (ClientHandler c : clients) {
+            synchronized (c) {
                 c.sendMessage(message);
             }
         }
     }
 
-    private boolean allChatIntro(){
-        for(ClientHandler c : clients){
-            synchronized (c){
-                if(!c.isChatStarted())
+    private boolean allChatIntro() {
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (!c.isChatStarted())
                     return false;
             }
         }
         return true;
     }
 
-    private void loopUntilChatIntro(){
-        while(!allChatIntro()){
+    private void loopUntilChatIntro() {
+        while (!allChatIntro()) {
             sleepThread(1000);
         }
     }
 
-    private boolean allMafiasVoteDone(){
-        for(ClientHandler c : clients){
-            if(c.isAlive() && !c.getCharacter().getMafiasVoteTimeBehaviour().behaviourDone &&
-            c.getCharacter().getMafiasVoteTimeBehaviour() instanceof MafiasVoteTreat)
+    private boolean allMafiasVoteDone() {
+        for (ClientHandler c : clients) {
+            if (c.isAlive() && !c.getCharacter().getMafiasVoteTimeBehaviour().behaviourDone &&
+                    c.getCharacter().getMafiasVoteTimeBehaviour() instanceof MafiasVoteTreat)
                 return false;
         }
         return true;
     }
 
 
-    private void endChat(){
+    private void endChat() {
 
         loopUntilChatIntro();
         boolean[] isDone = {false};
@@ -248,24 +248,26 @@ public class Game extends Thread{
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                for(ClientHandler c : clients){
-                    synchronized (c){
+                for (ClientHandler c : clients) {
+                    synchronized (c) {
                         c.setReady(true);
                     }
                 } // makes every client ready
                 ClientHandler.setMode(Mode.Vote);
                 sleepThread(500);
                 sendToAll(new Message("God", "The chat is over."));
+                sendToAll(new Message("God", "enter")); // for sticking
                 isDone[0] = true;
             }
         };
         timer.schedule(timerTask, 5 * 60 * 1000);
 
-        while(ClientHandler.getMode() == Mode.DayChatroom){
+        while (ClientHandler.getMode() == Mode.DayChatroom) {
             if (allClientReady()) {
                 ClientHandler.setMode(Mode.Vote);
                 sleepThread(500);
                 sendToAll(new Message("God", "The chat is over."));
+                sendToAll(new Message("God", "enter")); // for sticking
                 timer.cancel();
                 break;
             }
@@ -273,10 +275,10 @@ public class Game extends Thread{
         }
     }
 
-    private boolean allVoteStart(){
-        for(ClientHandler c : clients){
-            synchronized (c){
-                if(!c.isVoteStarted())
+    private boolean allVoteStart() {
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (!c.isVoteStarted())
                     return false;
             }
         }
@@ -284,13 +286,13 @@ public class Game extends Thread{
     }
 
 
-    private void loopUntilVoteStart(){
+    private void loopUntilVoteStart() {
         while (!allVoteStart()) {
             sleepThread(1000);
         }
     }
 
-    private void endVote(){
+    private void endVote() {
 
         loopUntilVoteStart();
 
@@ -302,49 +304,47 @@ public class Game extends Thread{
                 ClientHandler.setMode(Mode.ResultOfVote);
                 sleepThread(500);
                 sendToAll(new Message("God", "The vote is over."));
+                sendToAll(new Message("God", "enter")); // for sticking
             }
         };
         timer.schedule(timerTask, 30 * 1000);
 
 
         // a loop for not going forward to result vote until the mode is changed
-        while(ClientHandler.getMode() != Mode.ResultOfVote){
+        while (ClientHandler.getMode() != Mode.ResultOfVote) {
             sleepThread(1000);
         }
 
         sleepThread(500);
 
-
-
     }
 
-    private void resultOfVote(){
+    private void resultOfVote() {
 
         sendToAll(new Message("God", "The result will be shown."));
         sleepThread(3000);
 
         HashMap<ClientHandler, Integer> voteMap = new HashMap<>();
 
-        for(ClientHandler c : clients){
+        for (ClientHandler c : clients) {
             synchronized (c) {
                 voteMap.put(c, 0);
             }
         }
 
-        for(ClientHandler c : clients){
-            synchronized (c){
+        for (ClientHandler c : clients) {
+            synchronized (c) {
                 try {
                     voteMap.put(c.getMyVote(), voteMap.get(c.getMyVote()) + 1);
-                }catch (NullPointerException e){
+                } catch (NullPointerException e) {
                 }
             }
         }
 
 
-
         int maxVote = Collections.max(voteMap.values());
-        for(ClientHandler c : voteMap.keySet()){
-            if(voteMap.get(c) == maxVote){
+        for (ClientHandler c : voteMap.keySet()) {
+            if (voteMap.get(c) == maxVote) {
                 removedByVote = c;
                 break;
             }
@@ -356,19 +356,19 @@ public class Game extends Thread{
         ClientHandler.setMode(Mode.MayorTime);
     }
 
-    public void mayorTime(){
+    public void mayorTime() {
 
         ClientHandler mayor = null;
 
-        for(ClientHandler c : clients){
-            if(c.getRole() == Role.Mayor)
+        for (ClientHandler c : clients) {
+            if (c.getRole() == Role.Mayor)
                 mayor = c;
         }
 
         Character character = null;
         try {
             character = mayor.getCharacter();
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
             // TODO when there is no mayor in the game
             sleepThread(10 * 1000);
             sendToAll(new Message("God", "The mayor confirmed the vote"));
@@ -376,38 +376,54 @@ public class Game extends Thread{
             sendToAll(new Message("God", removedByVote.getClientName() + " is removed."));
             ClientHandler.setMode(Mode.RemoveByVote);
             sendToAll(new Message("God", "MayorTime ends."));
+
+            for (ClientHandler c : clients) { // for sticking
+                synchronized (c) {
+                    if (c.getCharacter().getMayorTimeBehaviour() instanceof NonMayorTreat) {
+                        c.sendMessage(new Message("God", "enter"));
+                    }
+                }
+            }
+
             sleepThread(3000);
             return;
         }
 
         // loop until mayor done his behaviour
-        while(!character.getMayorTimeBehaviour().behaviourDone){
+        while (!character.getMayorTimeBehaviour().behaviourDone) {
             sleepThread(1000);
         }
 
-        if(mayorConfirmation){
+        if (mayorConfirmation) {
             sendToAll(new Message("God", "The mayor confirmed the vote"));
             sleepThread(1000);
             sendToAll(new Message("God", removedByVote.getClientName() + " is removed."));
-
             ClientHandler.setMode(Mode.RemoveByVote);
-        }
-        else{
+        } else {
             sendToAll(new Message("God", "The mayor rejects the voting"));
             sleepThread(1000);
-            sendToAll(new Message("God","So " + removedByVote.getClientName() + " is still " +
+            sendToAll(new Message("God", "So " + removedByVote.getClientName() + " is still " +
                     "with us"));
             removedByVote = null;
             ClientHandler.setMode(Mode.MafiasVote);
         }
         sleepThread(500);
-        sendToAll(new Message("God", "MayorTime ends.")); // handles the sticking in the client
+
+        for (ClientHandler c : clients) { // for sticking
+            synchronized (c) {
+                if (c.getCharacter().getMayorTimeBehaviour() instanceof NonMayorTreat) {
+                    c.sendMessage(new Message("God", "enter"));
+                }
+            }
+        }
+        sleepThread(500);
+        sendToAll(new Message("God", "MayorTime ends."));
         sleepThread(3000);
     }
 
-    private void removeByVote(){
+    private void removeByVote() {
         // the game will enter this method if there is a removedByVote client
-        if(ClientHandler.getMode() == Mode.RemoveByVote){
+        if (ClientHandler.getMode() == Mode.RemoveByVote) {
 
             removedByVote.sendMessage(new Message("God", "You are removedByVote from the game :("));
             sleepThread(1000);
@@ -426,7 +442,7 @@ public class Game extends Thread{
                     clients.remove(removedByVote);
                     try {
                         removedByVote.getSocket().close();
-                    }catch (IOException e){
+                    } catch (IOException e) {
 
                     }
                     break;
@@ -435,27 +451,35 @@ public class Game extends Thread{
                 }
             }
         }
+
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c != removedByVote) {
+                    c.sendMessage(new Message("God", "enter")); // used for sticking
+                }
+            }
+        }
         removedByVote = null;
         ClientHandler.setMode(Mode.MafiasVote);
     }
 
-    private void endConsult(){
+    private void endConsult() {
         // wait till all the mafias consult
-        while(!allMafiasVoteDone()){
+        while (!allMafiasVoteDone()) {
             sleepThread(1000);
         }
 
         // we should check the godFather is alive or not, then go to the next part
         ClientHandler clientHandler = null;
-        for(ClientHandler c : clients){
-            if(c.getCharacter().getGodFatherTimeBehaviour() instanceof GodFatherTreat && c.isAlive()){
+        for (ClientHandler c : clients) {
+            if (c.getCharacter().getGodFatherTimeBehaviour() instanceof GodFatherTreat && c.isAlive()) {
                 clientHandler = c;
             }
         }
 
-        if(clientHandler == null){
-            for(ClientHandler c : clients){
-                if(Role.isMafia(c.getRole())){
+        if (clientHandler == null) {
+            for (ClientHandler c : clients) {
+                if (Role.isMafia(c.getRole()) && c.isAlive()) {
                     clientHandler = c;
                     break;
                 }
@@ -463,22 +487,40 @@ public class Game extends Thread{
             Character character = clientHandler.getCharacter();
             character.setGodFatherTimeBehaviour(new GodFatherTreat(character));
         }
+
         ClientHandler.setMode(Mode.GodFatherTime);
-        sendToAll(new Message("God", "Consult time ends"));// TODO use this message for sticking
-        sleepThread(500);
+
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c.getCharacter().getMafiasVoteTimeBehaviour() instanceof NonMafiasTreat &&
+                        c.isAlive()) {
+                    c.sendMessage(new Message("God", "enter"));
+                }
+            }
+        }
+        sendToAll(new Message("God", "Consult time ends"));
+        sleepThread(1000);
     }
 
-    private void godFather(){
+    private void godFather() {
+
+        sendToAll(new Message("God", "The GodFatherTime"));
 
         // loop until godFather done his work
-        while(godFatherChoice == null){
+        while (godFatherChoice == null) {
             sleepThread(1000);
         }
 
-        sendToAll(new Message("God","GodFatherTime ends"));
+        sendToAll(new Message("God", "GodFather chooses someone."));
         ClientHandler.setMode(Mode.DoctorLecterTime);
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c.getCharacter().godFatherTimeBehaviour instanceof NonGodFatherTreat) {
+                    c.sendMessage(new Message("God", "enter"));
+                }
+            }
+        }
     }
-
 
 
     @Override
@@ -511,7 +553,6 @@ public class Game extends Thread{
         endConsult();
 
         godFather();
-
 
 
     }

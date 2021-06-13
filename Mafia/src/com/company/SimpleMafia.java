@@ -13,6 +13,7 @@ public class SimpleMafia extends Character{
 
         mayorTimeBehaviour = new NonMayorTreat(this);
         mafiasVoteTimeBehaviour = new MafiasVoteTreat(this);
+        godFatherTimeBehaviour = new NonGodFatherTreat(this);
 
     }
 

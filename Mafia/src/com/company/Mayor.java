@@ -13,6 +13,7 @@ public class Mayor extends Character{
 
         mayorTimeBehaviour = new MayorTreat(this);
         mafiasVoteTimeBehaviour = new NonMafiasTreat(this);
+        godFatherTimeBehaviour = new NonGodFatherTreat(this);
     }
 
 

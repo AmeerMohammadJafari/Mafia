@@ -31,7 +31,6 @@ public class ClientHandler extends Thread {
     private boolean mayorIntro;
     private boolean isAlive; // TODO must handle this field very carefully
     private boolean consultStarted;
-    private boolean godFatherStarted;
 
 
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
@@ -53,7 +52,6 @@ public class ClientHandler extends Thread {
         mayorIntro = false;
         isAlive = true;
         consultStarted = false;
-        godFatherStarted = false;
 
         try {
             this.socket = socket;
@@ -63,7 +61,6 @@ public class ClientHandler extends Thread {
 
         }
     }
-
 
     public Socket getSocket() {
         return socket;
@@ -250,6 +247,8 @@ public class ClientHandler extends Thread {
                 character.getMayorTimeBehaviour().run();
                 sleepThread(1000);
             } else if (mode == Mode.RemoveByVote) {
+                // better to add a method for waiting
+                waitTillRemove();
                 sleepThread(1000);
                 // the game will handle this part
             } else if (mode == Mode.MafiasVote) {
@@ -261,9 +260,6 @@ public class ClientHandler extends Thread {
 
                 sleepThread(1000);
             } else if (mode == Mode.GodFatherTime) {
-                if (!godFatherStarted) {
-                    godFatherIntro();
-                }
                 character.getGodFatherTimeBehaviour().run();
                 sleepThread(1000);
             }
@@ -419,6 +415,13 @@ public class ClientHandler extends Thread {
         }
     }
 
+    private void waitTillRemove(){ // the removed one also use this
+        receiveMessage();
+        if(mode == Mode.RemoveByVote){
+            sendMessage(new Message("God", "Wait"));
+        }
+    }
+
     private void mayorTimeIntro() {
 
         sendMessage(new Message("God", "Now the Mayor has to decide confirm or reject " +
@@ -438,8 +441,4 @@ public class ClientHandler extends Thread {
         consultStarted = true;
     }
 
-    private void godFatherIntro() {
-        sendMessage(new Message("God", "The GodFatherTime"));
-
-    }
 }

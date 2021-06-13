@@ -12,6 +12,7 @@ public class Detective extends Character{
 
         mayorTimeBehaviour = new NonMayorTreat(this);
         mafiasVoteTimeBehaviour = new NonMafiasTreat(this);
+        godFatherTimeBehaviour = new NonGodFatherTreat(this);
 
     }
 

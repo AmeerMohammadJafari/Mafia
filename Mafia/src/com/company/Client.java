@@ -28,12 +28,15 @@ public class Client {
 
     }
 
+    private void showMessage(Message message){
+        System.out.println(message.getName() + " : " + message.getText());
+    }
+
 
     private Message receiveMessage() {
         Message message = null;
         try {
             message = (Message) input.readObject();
-            System.out.println(message.getName() + " : " + message.getText());
         } catch (StreamCorruptedException e) {
 
         } catch (EOFException e) {
@@ -75,14 +78,17 @@ public class Client {
                 try {
                     while (true) {
                         Message message = receiveMessage();
-                        if (message.getName().equals("God") &&
-                                (message.getText().equals("The chat is over.") ||
-                                        message.getText().equals("The vote is over.") ||
-                                        message.getText().equals("MayorTime ends.") ||
-                                        message.getText().equals("GodFatherTime ends"))) {
 
+                        if(message.getName().equals("God") && message.getText().equals("enter")){
                             justSendMessage();
                         }
+                        else{
+                            showMessage(message);
+                        }
+
+
+
+
                     }
                 }catch (NullPointerException ignored){
 
