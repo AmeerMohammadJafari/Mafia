@@ -15,6 +15,5 @@ public class NonMafiasTreat extends MafiasVoteTimeBehaviour{
             sendMessage(new Message("God","Mafias Time, Can not say anything :|"));
         }
         // TODO handle sticking
-        sleepThread(1000);
     }
 }

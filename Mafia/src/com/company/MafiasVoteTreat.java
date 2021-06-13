@@ -10,6 +10,10 @@ public class MafiasVoteTreat extends MafiasVoteTimeBehaviour {
 
     @Override
     public void run() {
+
+        if(behaviourDone)
+            return;
+
         sendMessage(new Message("God", "The mafias list\n" + game.mafiasList()));
         sleepThread(1000);
         sendMessage(new Message("God", "Choose the one you think should be killed"));
@@ -22,7 +26,8 @@ public class MafiasVoteTreat extends MafiasVoteTimeBehaviour {
             if (ClientHandler.isClientName(message.getText()) != null) {
 
 
-                myVote = ClientHandler.isClientName(message.getText());
+                ClientHandler myVote = ClientHandler.isClientName(message.getText());
+                voteMap.put(client, myVote);
                 sendMessage(new Message("God", "Done"));
                 break;
 

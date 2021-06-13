@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -30,6 +31,7 @@ public class ClientHandler extends Thread {
     private boolean mayorIntro;
     private boolean isAlive; // TODO must handle this field very carefully
     private boolean consultStarted;
+    private boolean godFatherStarted;
 
 
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
@@ -51,6 +53,7 @@ public class ClientHandler extends Thread {
         mayorIntro = false;
         isAlive = true;
         consultStarted = false;
+        godFatherStarted = false;
 
         try {
             this.socket = socket;
@@ -146,6 +149,8 @@ public class ClientHandler extends Thread {
     public void sendMessage(Message message) {
         try {
             output.writeObject(message);
+        } catch (SocketException e) {
+            System.out.println("socket exception");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -155,6 +160,8 @@ public class ClientHandler extends Thread {
         Message message = null;
         try {
             message = (Message) input.readObject();
+        } catch (SocketException e) {
+            System.out.println("Socket exception");
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -241,6 +248,7 @@ public class ClientHandler extends Thread {
                 if (!mayorIntro)
                     mayorTimeIntro();
                 character.getMayorTimeBehaviour().run();
+                sleepThread(1000);
             } else if (mode == Mode.RemoveByVote) {
                 sleepThread(1000);
                 // the game will handle this part
@@ -248,19 +256,21 @@ public class ClientHandler extends Thread {
 
                 if (!consultStarted)
                     consultIntro();
-                if (!character.getMafiasVoteTimeBehaviour().behaviourDone)
-                    character.getMafiasVoteTimeBehaviour().run();
+
+                character.getMafiasVoteTimeBehaviour().run();
+
+                sleepThread(1000);
+            } else if (mode == Mode.GodFatherTime) {
+                if (!godFatherStarted) {
+                    godFatherIntro();
+                }
+                character.getGodFatherTimeBehaviour().run();
                 sleepThread(1000);
             }
-            else if(mode == Mode.GodFatherTime){
-
-            }
-
-
         }
-
-
     }
+
+    // TODO so many parts can be in the game instead, such as intros i guess
 
     private void enterNameAndReady() {
         while (true) {
@@ -415,7 +425,6 @@ public class ClientHandler extends Thread {
                 "the vote result"));
         sleepThread(2000);
         sendMessage(new Message("God", "Wait till mayor decides."));
-
         mayorIntro = true;
 
     }
@@ -429,4 +438,8 @@ public class ClientHandler extends Thread {
         consultStarted = true;
     }
 
+    private void godFatherIntro() {
+        sendMessage(new Message("God", "The GodFatherTime"));
+
+    }
 }

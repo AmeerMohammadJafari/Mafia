@@ -4,14 +4,14 @@ import java.util.HashMap;
 
 public abstract class MafiasVoteTimeBehaviour extends Behaviour{
 
-    protected ClientHandler myVote;
+    protected static HashMap<ClientHandler, ClientHandler> voteMap;
 
     public MafiasVoteTimeBehaviour(Character character) {
         super(character);
-        myVote = null;
+        voteMap = new HashMap<>();
     }
 
-    public ClientHandler getMyVote() {
-        return myVote;
+    public static HashMap<ClientHandler, ClientHandler> getVoteMap() {
+        return voteMap;
     }
 }

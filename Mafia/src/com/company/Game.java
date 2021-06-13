@@ -14,6 +14,7 @@ public class Game extends Thread{
     private ClientHandler removedByVote;
     private boolean mayorConfirmation;
     private ArrayList<Role> removedRoles;
+    private ClientHandler godFatherChoice;
 
     public Game(Vector<ClientHandler> clients, int numberOfClients) {
         this.clients = clients;
@@ -22,6 +23,10 @@ public class Game extends Thread{
         villagers = new Vector<>();
         mafias = new Vector<>();
         removedRoles = new ArrayList<>();
+    }
+
+    public void setGodFatherChoice(ClientHandler godFatherChoice) {
+        this.godFatherChoice = godFatherChoice;
     }
 
     public Vector<ClientHandler> getClients() {
@@ -227,7 +232,8 @@ public class Game extends Thread{
 
     private boolean allMafiasVoteDone(){
         for(ClientHandler c : clients){
-            if(c.isAlive() && !c.getCharacter().getMafiasVoteTimeBehaviour().behaviourDone)
+            if(c.isAlive() && !c.getCharacter().getMafiasVoteTimeBehaviour().behaviourDone &&
+            c.getCharacter().getMafiasVoteTimeBehaviour() instanceof MafiasVoteTreat)
                 return false;
         }
         return true;
@@ -369,7 +375,6 @@ public class Game extends Thread{
             sleepThread(1000);
             sendToAll(new Message("God", removedByVote.getClientName() + " is removed."));
             ClientHandler.setMode(Mode.RemoveByVote);
-            sleepThread(500);
             sendToAll(new Message("God", "MayorTime ends."));
             sleepThread(3000);
             return;
@@ -402,7 +407,7 @@ public class Game extends Thread{
 
     private void removeByVote(){
         // the game will enter this method if there is a removedByVote client
-        if(removedByVote != null){
+        if(ClientHandler.getMode() == Mode.RemoveByVote){
 
             removedByVote.sendMessage(new Message("God", "You are removedByVote from the game :("));
             sleepThread(1000);
@@ -435,12 +440,46 @@ public class Game extends Thread{
     }
 
     private void endConsult(){
+        // wait till all the mafias consult
         while(!allMafiasVoteDone()){
             sleepThread(1000);
         }
-        ClientHandler.setMode(Mode.GodFatherTime);
 
+        // we should check the godFather is alive or not, then go to the next part
+        ClientHandler clientHandler = null;
+        for(ClientHandler c : clients){
+            if(c.getCharacter().getGodFatherTimeBehaviour() instanceof GodFatherTreat && c.isAlive()){
+                clientHandler = c;
+            }
+        }
+
+        if(clientHandler == null){
+            for(ClientHandler c : clients){
+                if(Role.isMafia(c.getRole())){
+                    clientHandler = c;
+                    break;
+                }
+            }
+            Character character = clientHandler.getCharacter();
+            character.setGodFatherTimeBehaviour(new GodFatherTreat(character));
+        }
+        ClientHandler.setMode(Mode.GodFatherTime);
+        sendToAll(new Message("God", "Consult time ends"));// TODO use this message for sticking
+        sleepThread(500);
     }
+
+    private void godFather(){
+
+        // loop until godFather done his work
+        while(godFatherChoice == null){
+            sleepThread(1000);
+        }
+
+        sendToAll(new Message("God","GodFatherTime ends"));
+        ClientHandler.setMode(Mode.DoctorLecterTime);
+    }
+
+
 
     @Override
     public void run() {
@@ -470,6 +509,8 @@ public class Game extends Thread{
         removeByVote(); // enter this method when a client is removedByVote
 
         endConsult();
+
+        godFather();
 
 
 

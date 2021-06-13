@@ -13,7 +13,6 @@ public class NonMayorTreat extends Behaviour{
         if(ClientHandler.getMode() == Mode.MayorTime){
             sendMessage(new Message("God","Mayor Time, Can not say anything :|"));
         }
-
-        sleepThread(1000);
+        // TODO handle sticking
     }
 }

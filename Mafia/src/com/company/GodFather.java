@@ -12,7 +12,9 @@ public class GodFather extends Character{
         super(output, input, client, game);
 
         mayorTimeBehaviour = new NonMayorTreat(this);
-        mafiasVoteTimeBehaviour = new MafiasVoteTreat(this);
+        mafiasVoteTimeBehaviour = new NonMafiasTreat(this);
+        godFatherTimeBehaviour = new GodFatherTreat(this);
+
     }
 
 

@@ -14,6 +14,7 @@ public abstract class Character {
     protected Game game;
     protected Behaviour mayorTimeBehaviour;
     protected MafiasVoteTimeBehaviour mafiasVoteTimeBehaviour;
+    protected Behaviour godFatherTimeBehaviour;
 
 
     public Character(ObjectOutputStream output, ObjectInputStream input,
@@ -48,6 +49,14 @@ public abstract class Character {
 
     public MafiasVoteTimeBehaviour getMafiasVoteTimeBehaviour() {
         return mafiasVoteTimeBehaviour;
+    }
+
+    public void setGodFatherTimeBehaviour(Behaviour godFatherTimeBehaviour) {
+        this.godFatherTimeBehaviour = godFatherTimeBehaviour;
+    }
+
+    public Behaviour getGodFatherTimeBehaviour() {
+        return godFatherTimeBehaviour;
     }
 }
 

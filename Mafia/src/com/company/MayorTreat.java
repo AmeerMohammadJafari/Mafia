@@ -9,8 +9,10 @@ public class MayorTreat extends Behaviour{
 
     @Override
     public void run() {
-        if(behaviourDone)
+
+        if(behaviourDone){
             return;
+        }
 
         while(true) {
             sendMessage(new Message("God", "Write (confirm) or (reject)."));
@@ -29,4 +31,9 @@ public class MayorTreat extends Behaviour{
         }
         behaviourDone = true;
     }
+
+
+
+
+
 }

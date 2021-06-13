@@ -3,6 +3,8 @@ package com.company;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.SocketException;
 
 public abstract class Behaviour {
 
@@ -23,7 +25,10 @@ public abstract class Behaviour {
     protected void sendMessage(Message message) {
         try {
             output.writeObject(message);
-        } catch (IOException e) {
+        }catch (SocketException e){
+            client = null;
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -32,7 +37,10 @@ public abstract class Behaviour {
         Message message = null;
         try {
             message = (Message) input.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (SocketException e){
+            client = null;
+        }
+        catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
         return message;
