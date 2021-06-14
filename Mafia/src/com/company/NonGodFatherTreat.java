@@ -11,7 +11,7 @@ public class NonGodFatherTreat extends Behaviour{
     public void run() {
         receiveMessage();
 
-        if(ClientHandler.getMode() == Mode.GodFatherTime){
+        if(client.getGameMode() == Mode.GodFatherTime){
             sendMessage(new Message("God","GodFather Time, Can not say anything :|"));
         }
         // TODO handle sticking

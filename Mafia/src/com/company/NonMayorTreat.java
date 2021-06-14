@@ -10,7 +10,7 @@ public class NonMayorTreat extends Behaviour{
     public void run() {
         receiveMessage();
 
-        if(ClientHandler.getMode() == Mode.MayorTime){
+        if(client.getGameMode() == Mode.MayorTime){
             sendMessage(new Message("God","Mayor Time, Can not say anything :|"));
         }
         // TODO handle sticking

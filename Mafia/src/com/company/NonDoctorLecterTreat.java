@@ -11,7 +11,7 @@ public class NonDoctorLecterTreat extends LimitedBehaviour {
     public void run() {
         receiveMessage();
 
-        if(ClientHandler.getMode() == Mode.DoctorLecterTime){
+        if(client.getGameMode() == Mode.DoctorLecterTime){
             sendMessage(new Message("God","DoctorLecter Time, Can not say anything :|"));
         }
         // TODO handle sticking

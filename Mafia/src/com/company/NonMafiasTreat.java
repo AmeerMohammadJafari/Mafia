@@ -11,7 +11,7 @@ public class NonMafiasTreat extends MafiasVoteTimeBehaviour{
 
         receiveMessage();
 
-        if(ClientHandler.getMode() == Mode.MafiasVote){
+        if(client.getGameMode() == Mode.MafiasVote){
             sendMessage(new Message("God","Mafias Time, Can not say anything :|"));
         }
         // TODO handle sticking

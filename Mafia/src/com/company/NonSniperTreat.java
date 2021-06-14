@@ -11,7 +11,7 @@ public class NonSniperTreat extends Behaviour{
     public void run() {
         receiveMessage();
 
-        if(ClientHandler.getMode() == Mode.SniperTime){
+        if(client.getGameMode() == Mode.SniperTime){
             sendMessage(new Message("God","Sniper Time, Can not say anything :|"));
         }
         // TODO handle sticking

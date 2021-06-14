@@ -10,7 +10,7 @@ public class NonDiehardTreat extends LimitedBehaviour{
     public void run() {
         receiveMessage();
 
-        if(ClientHandler.getMode() == Mode.DieHardTime){
+        if(client.getGameMode() == Mode.DieHardTime){
             sendMessage(new Message("God","Diehard Time, Can not say anything :|"));
         }
         // TODO handle sticking

@@ -20,7 +20,7 @@ public class ClientHandler extends Thread {
     private Role role;
     private boolean isSilent; // TODO this field can be set by psycho either when a client just left and want
     private boolean isLoggedIn;
-    private static Mode mode;
+    private Mode gameMode;
     private boolean sendRole;
     private boolean introduced;
     private boolean chatStarted;
@@ -35,7 +35,7 @@ public class ClientHandler extends Thread {
 
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
 
-        mode = Mode.EnterNameAndReady;
+        gameMode = Mode.EnterNameAndReady;
         ClientHandler.numberOfClients = numberOfClients;
         this.isReady = false;
         this.isSilent = false;
@@ -61,6 +61,7 @@ public class ClientHandler extends Thread {
 
         }
     }
+
 
     public void setSilent(boolean silent) {
         isSilent = silent;
@@ -107,8 +108,12 @@ public class ClientHandler extends Thread {
         return chatStarted;
     }
 
-    public static Mode getMode() {
-        return mode;
+    public Mode getGameMode() {
+        return gameMode;
+    }
+
+    public void setGameMode(Mode gameMode) {
+        this.gameMode = gameMode;
     }
 
     public void setReady(boolean ready) {
@@ -131,9 +136,6 @@ public class ClientHandler extends Thread {
         return isLoggedIn;
     }
 
-    public static void setMode(Mode mode) {
-        ClientHandler.mode = mode;
-    }
 
     public String getClientName() {
         return clientName;
@@ -234,46 +236,46 @@ public class ClientHandler extends Thread {
 
         while (true) {
 
-            if (mode == Mode.EnterNameAndReady) {
+            if (gameMode == Mode.EnterNameAndReady) {
                 if (isLoggedIn) {
                     sleepThread(1000);
                     continue;
                 }
                 enterNameAndReady();
-            } else if (mode == Mode.SendRoll) {
+            } else if (gameMode == Mode.SendRoll) {
                 if (sendRole) {
                     sleepThread(1000);
                     continue;
                 }
                 sendRole();
-            } else if (mode == Mode.Introduction) {
+            } else if (gameMode == Mode.Introduction) {
                 if (introduced) {
                     sleepThread(1000);
                     continue;
                 }
                 introduce();
-            } else if (mode == Mode.DayChatroom) {
+            } else if (gameMode == Mode.DayChatroom) {
                 if (!chatStarted) {
                     chatIntro();
                 }
                 chat();
-            } else if (mode == Mode.Vote) {
+            } else if (gameMode == Mode.Vote) {
                 if (!voteStarted) {
                     voteIntro();
                 }
                 vote();
-            } else if (mode == Mode.ResultOfVote) {
+            } else if (gameMode == Mode.ResultOfVote) {
                 sleepThread(1000);
                 // the game will handle this part
-            } else if (mode == Mode.MayorTime) {
+            } else if (gameMode == Mode.MayorTime) {
                 if (!mayorIntro)
                     mayorTimeIntro();
                 character.getMayorTimeBehaviour().run();
                 sleepThread(1000);
-            } else if (mode == Mode.RemoveByVote) {
+            } else if (gameMode == Mode.RemoveByVote) {
                 sleepThread(1000);
                 // the game will handle this part
-            } else if (mode == Mode.MafiasVote) {
+            } else if (gameMode == Mode.MafiasVote) {
 
                 if (!consultStarted)
                     consultIntro();
@@ -281,29 +283,29 @@ public class ClientHandler extends Thread {
                 character.getMafiasVoteTimeBehaviour().run();
 
                 sleepThread(1000);
-            } else if (mode == Mode.GodFatherTime) {
+            } else if (gameMode == Mode.GodFatherTime) {
                 character.getGodFatherTimeBehaviour().run();
                 sleepThread(1000);
-            } else if (mode == Mode.DoctorLecterTime) {
+            } else if (gameMode == Mode.DoctorLecterTime) {
                 character.getDoctorLecterTimeBehaviour().run();
                 sleepThread(1000);
-            } else if (mode == Mode.DoctorTime) {
+            } else if (gameMode == Mode.DoctorTime) {
                 character.getDoctorTimeBehaviour().run();
                 sleepThread(1000);
             }
-            else if(mode == Mode.DetectiveTime){
+            else if(gameMode == Mode.DetectiveTime){
                 character.getDetectiveTimeBehaviour().run();
                 sleepThread(1000);
             }
-            else if(mode == Mode.SniperTime){
+            else if(gameMode == Mode.SniperTime){
                 character.getSniperTimeBehaviour().run();
                 sleepThread(1000);
             }
-            else if(mode == Mode.PsychologistTime){
+            else if(gameMode == Mode.PsychologistTime){
                 character.getPsychologistTimeBehaviour().run();
                 sleepThread(1000);
             }
-            else if(mode == Mode.DieHardTime){
+            else if(gameMode == Mode.DieHardTime){
                 character.getDiehardTimeBehaviour().run();
                 sleepThread(1000);
             }
@@ -411,7 +413,7 @@ public class ClientHandler extends Thread {
     private void chat() {
         Message message = receiveMessage();
 
-        if (mode == Mode.DayChatroom) {
+        if (gameMode == Mode.DayChatroom) {
             if (isSilent) {
                 sendMessage(new Message("God", "As I just said, you can not chat"));
             } else {
@@ -443,7 +445,7 @@ public class ClientHandler extends Thread {
 
         Message message = receiveMessage();
 
-        if (mode == Mode.Vote) {
+        if (gameMode == Mode.Vote) {
             if (isClientName(message.getText()) != null) {
 
                 if (message.getText().equals(clientName)) {
@@ -462,7 +464,7 @@ public class ClientHandler extends Thread {
 
     private void waitTillRemove() { // the removed one also use this
         Message message = receiveMessage();
-        if (mode == Mode.RemoveByVote) {
+        if (gameMode == Mode.RemoveByVote) {
             sendMessage(new Message("God", "Wait"));
         }
     }
