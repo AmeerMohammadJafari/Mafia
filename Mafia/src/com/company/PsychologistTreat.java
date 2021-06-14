@@ -16,11 +16,17 @@ public class PsychologistTreat extends Behaviour{
         sleepThread(1000);
         sendMessage(new Message("God", game.clientsList()));
         sleepThread(1000);
-        sendMessage(new Message("God", "Choose a person you want to silent"));
+        sendMessage(new Message("God", "Choose a person you want to silent, or enter " +
+                "(no) if you don't want to silent anyone"));
 
         while (true) {
 
             Message message = receiveMessage();
+            if(message.getText().equals("no")){
+                game.setPsychologistChoice(null);
+                sendMessage(new Message("God", "Done"));
+                break;
+            }
             ClientHandler myChoice = null;
             myChoice = ClientHandler.isClientName(message.getText());
 

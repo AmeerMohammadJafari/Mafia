@@ -61,7 +61,7 @@ public class Server {
             if (num >= 10) {
                 break;
             } else
-                System.out.println("The number of players must be at least 8");
+                System.out.println("The number of players must be at least 10");
         }
         Server server = new Server(port, num);
         server.startServer();

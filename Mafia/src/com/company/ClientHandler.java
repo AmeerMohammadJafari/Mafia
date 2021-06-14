@@ -32,7 +32,6 @@ public class ClientHandler extends Thread {
     private boolean aliveClient; // TODO must handle this field very carefully
     private boolean consultStarted;
 
-
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
 
         gameMode = Mode.EnterNameAndReady;
@@ -60,6 +59,26 @@ public class ClientHandler extends Thread {
         } catch (IOException e) {
 
         }
+    }
+
+    public void setConsultStarted(boolean consultStarted) {
+        this.consultStarted = consultStarted;
+    }
+
+    public void setMayorIntro(boolean mayorIntro) {
+        this.mayorIntro = mayorIntro;
+    }
+
+    public void setMyVote(ClientHandler myVote) {
+        this.myVote = myVote;
+    }
+
+    public void setVoteStarted(boolean voteStarted) {
+        this.voteStarted = voteStarted;
+    }
+
+    public void setChatStarted(boolean chatStarted) {
+        this.chatStarted = chatStarted;
     }
 
     public boolean isAliveClient() {
@@ -93,6 +112,14 @@ public class ClientHandler extends Thread {
 
     public void setHealth(int health) {
         this.health = health;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void lowHealth(){
+        health--;
     }
 
     public void setCharacter(Character character) {
@@ -197,8 +224,13 @@ public class ClientHandler extends Thread {
 
     private void sendToOthers(Message message) {
         for (ClientHandler c : clients) {
-            if (c != this && c.isAliveClient())
-                c.sendMessage(message);
+            if (c != this ){
+                try {
+                    c.getOutput().writeObject(message);
+                }catch (IOException e){
+
+                }
+            }
         }
     }
 
@@ -296,8 +328,8 @@ public class ClientHandler extends Thread {
                     mayorTimeIntro();
                 character.getMayorTimeBehaviour().run();
                 sleepThread(1000);
-            } else if (gameMode == Mode.RemoveByVote) {
-                sleepThread(1000);
+            } else if (gameMode == Mode.Remove) {
+                sleepThread(2000);
                 // the game will handle this part
             } else if (gameMode == Mode.MafiasVote) {
 
@@ -337,13 +369,13 @@ public class ClientHandler extends Thread {
 
             }
             else if(gameMode == Mode.CanOnlyWatch){
-                System.out.println(clientName + "enter the can only mode");
                 onlyWatch();
                 sleepThread(1000);
             }
             else if(gameMode == Mode.OutOfGame){
 
             }
+
 
         }
     }
@@ -428,16 +460,15 @@ public class ClientHandler extends Thread {
 
     private void chatIntro() {
         sendMessage(new Message("God", "Now the day starts and it's chat time. It will take 5 min" +
-                "ute last, if you get ready for the voting at any time just enter (ready) and wait for " +
+                "utes at last, if you get ready for the voting at any time just enter (ready) and wait for " +
                 "the others"));
         sleepThread(2000);
 
         for (ClientHandler c : clients)
             c.isReady = false;
 
-        if (isSilent) { // TODO i think that you should consider other factors for not chatting
+        if (isSilent) {
             isReady = true;
-            sendMessage(new Message("God", "You can not chat"));
         }
 
         chatStarted = true;

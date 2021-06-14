@@ -19,6 +19,7 @@ public class Game extends Thread {
     private ClientHandler doctorChoice;
     private ClientHandler sniperChoice;
     private ClientHandler psychologistChoice;
+    private boolean diehardAct;
 
     public Game(Vector<ClientHandler> clients, int numberOfClients) {
         this.clients = clients;
@@ -27,6 +28,10 @@ public class Game extends Thread {
         villagers = new Vector<>();
         mafias = new Vector<>();
         removedRoles = new ArrayList<>();
+    }
+
+    public void setDiehardAct(boolean diehardAct) {
+        this.diehardAct = diehardAct;
     }
 
     public void setPsychologistChoice(ClientHandler psychologistChoice) {
@@ -173,14 +178,14 @@ public class Game extends Thread {
         return true;
     }
 
-    private void canOnlyWatch(ClientHandler c){
+    private void canOnlyWatch(ClientHandler c) {
         c.sendMessage(new Message("God", "So you can only watch"));
         c.setAliveClient(false);
         c.setGameMode(Mode.CanOnlyWatch);
         removedRoles.add(c.getRole());
     }
 
-    private void outOfGame(ClientHandler c){
+    private void outOfGame(ClientHandler c) {
         c.setAliveClient(false);
         c.setGameMode(Mode.OutOfGame);
         removedRoles.add(c.getRole());
@@ -284,7 +289,11 @@ public class Game extends Thread {
     private void sendToAll(Message message) {
         for (ClientHandler c : clients) {
             synchronized (c) {
-                c.sendMessage(message);
+                try {
+                    c.getOutput().writeObject(message);
+                } catch (IOException e) {
+
+                }
             }
         }
     }
@@ -469,7 +478,7 @@ public class Game extends Thread {
             sendToAll(new Message("God", "The mayor confirmed the vote"));
             sleepThread(1000);
             sendToAll(new Message("God", removedByVote.getClientName() + " is removed."));
-            setModeForAll(Mode.RemoveByVote);
+            setModeForAll(Mode.Remove);
         } else {
             sendToAll(new Message("God", "The mayor rejects the voting"));
             sleepThread(1000);
@@ -494,30 +503,33 @@ public class Game extends Thread {
 
     private void removeByVote() {
         // the game will enter this method if there is a removedByVote client
-        sleepThread(3000);
-        if (allInMode(Mode.RemoveByVote)) {
+        sleepThread(1000);
+        if (allInMode(Mode.Remove)) {
+            removeFromGame(removedByVote);
+            removedByVote = null;
+            setModeForAll(Mode.MafiasVote);
+        }
+    }
 
-            removedByVote.sendMessage(new Message("God", "You are removedByVote from the game :("));
-            sleepThread(1000);
-            removedByVote.sendMessage(new Message("God", "If you still want to follow the game " +
-                    "events, enter (follow) else enter (quit) if you want to quit the game"));
 
-            while (true) {
-                Message message = removedByVote.receiveMessage();
-                if (message.getText().equals("follow")) {
-                    canOnlyWatch(removedByVote);
-                    break;
-                } else if (message.getText().equals("quit")) {
-                    outOfGame(removedByVote);
-                    break;
-                } else {
-                    removedByVote.sendMessage(new Message("God", ":|"));
-                }
+    private void removeFromGame(ClientHandler c) {
+        c.sendMessage(new Message("God", "You are removed from the game :("));
+        sleepThread(1000);
+        c.sendMessage(new Message("God", "If you still want to follow the game " +
+                "events, enter (follow) else enter (quit) if you want to quit the game"));
+
+        while (true) {
+            Message message = c.receiveMessage();
+            if (message.getText().equals("follow")) {
+                canOnlyWatch(c);
+                break;
+            } else if (message.getText().equals("quit")) {
+                outOfGame(c);
+                break;
+            } else {
+                removedByVote.sendMessage(new Message("God", ":|"));
             }
         }
-
-        removedByVote = null;
-        setModeForAll(Mode.MafiasVote);
     }
 
     private void endConsult() {
@@ -533,6 +545,7 @@ public class Game extends Thread {
                 clientHandler = c;
             }
         }
+
         // set godFather treat to another mafia
         if (clientHandler == null) {
             for (ClientHandler c : clients) {
@@ -655,7 +668,7 @@ public class Game extends Thread {
         }
 
         // handling dead detective
-        if(!detective.isAliveClient()){
+        if (!detective.isAliveClient()) {
             detective.getCharacter().getDetectiveTimeBehaviour().setBehaviourDone(true);
             sleepThread(10 * 1000);
         }
@@ -687,7 +700,7 @@ public class Game extends Thread {
         }
 
         // handling dead sniper
-        if(!sniper.isAliveClient()){
+        if (!sniper.isAliveClient()) {
             sniper.getCharacter().getSniperTimeBehaviour().setBehaviourDone(true);
             sniperChoice = null;
             sleepThread(10 * 1000);
@@ -718,7 +731,7 @@ public class Game extends Thread {
         }
 
         // handling dead psycho
-        if(!psycho.isAliveClient()){
+        if (!psycho.isAliveClient()) {
             psycho.getCharacter().getPsychologistTimeBehaviour().setBehaviourDone(true);
             psychologistChoice = null;
             sleepThread(10 * 1000);
@@ -748,7 +761,7 @@ public class Game extends Thread {
         }
 
         // handling dead diehard
-        if(!diehard.isAliveClient()){
+        if (!diehard.isAliveClient()) {
             diehard.getCharacter().getDiehardTimeBehaviour().setBehaviourDone(true);
             sleepThread(10 * 1000);
         }
@@ -770,6 +783,81 @@ public class Game extends Thread {
         sleepThread(3000);
     }
 
+
+    private void endOfTheNight() {
+        sendToAll(new Message("God", "The end of the night, wait for the results"));
+        // see who should be killed or not
+        // godFather dr and dr lecter   sniper   psycho
+        if (godFatherChoice == doctorChoice)
+            godFatherChoice = null;
+        if (sniperChoice == doctorLecterChoice || sniperChoice == doctorChoice)
+            sniperChoice = null;
+
+
+        if (psychologistChoice != null) {
+            sendToAll(new Message("God", psychologistChoice.getClientName() + " is silent"));
+            psychologistChoice.setSilent(true);
+        }
+        if (godFatherChoice != null) {
+            godFatherChoice.lowHealth();
+            if (godFatherChoice.getHealth() == 0) {
+                sendToAll(new Message("God", godFatherChoice.getClientName() + " was killed last night."));
+                sleepThread(1000);
+                sendToAll(new Message("God", "wait for " + godFatherChoice.getClientName()));
+                setModeForAll(Mode.Remove);
+                removeFromGame(godFatherChoice);
+                setModeForAll(Mode.EndOfNight);
+            }
+        }
+
+        if (sniperChoice != null) {
+
+            if (!Role.isMafia(sniperChoice.getRole())) {
+                for(ClientHandler c : clients){
+                    if(c.getRole() == Role.Sniper && c.isAliveClient()){
+                        sniperChoice = c;
+                        break;
+                    }
+                }
+            }
+            sniperChoice.lowHealth();
+            if (sniperChoice.getHealth() == 0) {
+                sendToAll(new Message("God", sniperChoice.getClientName() + " was killed last night."));
+                setModeForAll(Mode.Remove);
+                removeFromGame(sniperChoice);
+                setModeForAll(Mode.EndOfNight);
+            }
+        }
+
+
+        if(godFatherChoice == null && sniperChoice == null && psychologistChoice == null && !diehardAct){
+            sendToAll(new Message("God", "Nothing happens apparently"));
+        }
+        reset();
+        setModeForAll(Mode.DayChatroom);
+    }
+
+    private void reset() {
+        for (ClientHandler c : clients) {
+            c.setReady(false);
+            // silent false after chat
+            c.setChatStarted(false);
+            c.setVoteStarted(false);
+            c.setMyVote(null);
+            c.setMayorIntro(false);
+            c.setConsultStarted(false);
+            c.getCharacter().reset();
+        }
+        removedByVote = null;
+        mayorConfirmation = false;
+        godFatherChoice = null;
+        doctorLecterChoice = null;
+        doctorChoice = null;
+        sniperChoice = null;
+        psychologistChoice = null;
+        diehardAct = false;
+
+    }
 
 
     @Override
@@ -818,6 +906,7 @@ public class Game extends Thread {
 
         diehard();
 
+        endOfTheNight();
 
     }
 }

@@ -32,19 +32,20 @@ public class DiehardTreat extends LimitedBehaviour{
 
             Message message = receiveMessage();
             if(message.getText().equals("yes")){
-                sendMessage(new Message("God", "The roles which are removed :"));
+                /*sendMessage(new Message("God", "The roles which are removed :"));
                 ArrayList<Role> roles = game.getRemovedRoles();
                 String text = "";
                 for(Role role : roles){
                     text += role + ", ";
                 }
-                sleepThread(1000);
-                sendMessage(new Message("God", text));
+                sleepThread(1000);*/
+                game.setDiehardAct(true);
+                sendMessage(new Message("God", "Done"));
                 treat--;
                 break;
             }
             else if(message.getText().equals("no")){
-                sendMessage(new Message("God", "OK"));
+                sendMessage(new Message("God", "Done"));
                 break;
             }
             else{

@@ -87,5 +87,17 @@ public abstract class Character {
     public LimitedBehaviour getDiehardTimeBehaviour() {
         return diehardTimeBehaviour;
     }
+
+    public void reset(){
+        mayorTimeBehaviour.setBehaviourDone(false);
+        mafiasVoteTimeBehaviour.setBehaviourDone(false);
+        godFatherTimeBehaviour.setBehaviourDone(false);
+        doctorLecterTimeBehaviour.setBehaviourDone(false);
+        doctorTimeBehaviour.setBehaviourDone(false);
+        detectiveTimeBehaviour.setBehaviourDone(false);
+        sniperTimeBehaviour.setBehaviourDone(false);
+        psychologistTimeBehaviour.setBehaviourDone(false);
+        diehardTimeBehaviour.setBehaviourDone(false);
+    }
 }
 
