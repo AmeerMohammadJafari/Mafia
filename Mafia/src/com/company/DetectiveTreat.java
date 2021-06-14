@@ -1,26 +1,22 @@
 package com.company;
 
-public class DoctorTreat extends LimitedBehaviour {
+public class DetectiveTreat extends Behaviour {
 
-
-    public DoctorTreat(Character character) {
+    public DetectiveTreat(Character character) {
         super(character);
-        treat = 1;
     }
 
     @Override
     public void run() {
-
         if (behaviourDone)
             return;
-
 
         sleepThread(1000);
         sendMessage(new Message("God", "Clients list :"));
         sleepThread(1000);
         sendMessage(new Message("God", game.clientsList()));
         sleepThread(1000);
-        sendMessage(new Message("God", "Choose a person to cure"));
+        sendMessage(new Message("God", "Choose a person you want to know is mafia or not"));
 
         while (true) {
 
@@ -28,20 +24,15 @@ public class DoctorTreat extends LimitedBehaviour {
             ClientHandler myChoice = null;
             myChoice = ClientHandler.isClientName(message.getText());
 
-
             if (myChoice != null) {
 
-                if (myChoice == client) {
-
-                    if (treat <= 0) {
-                        sendMessage(new Message("God", "You have chosen yourself before :/"));
-                        continue;
-                    }
-                    treat--;
+                if(!Role.isMafia(myChoice.getRole()) || myChoice.getRole() == Role.GodFather){
+                    sendMessage(new Message("God", "Not mafia"));
+                }
+                else{
+                    sendMessage(new Message("God", "Is mafia"));
                 }
 
-                game.setDoctorChoice(myChoice);
-                sendMessage(new Message("God", "Done"));
                 break;
 
             } else {

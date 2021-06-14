@@ -1,9 +1,7 @@
 package com.company;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Vector;
 
 public abstract class Character {
 
@@ -12,11 +10,16 @@ public abstract class Character {
     protected ObjectInputStream input;
     protected ClientHandler client;
     protected Game game;
+
     protected Behaviour mayorTimeBehaviour;
     protected MafiasVoteTimeBehaviour mafiasVoteTimeBehaviour;
     protected Behaviour godFatherTimeBehaviour;
-    protected DoctorTimeBehaviour doctorLecterTimeBehaviour;
-    protected DoctorTimeBehaviour doctorTimeBehaviour;
+    protected LimitedBehaviour doctorLecterTimeBehaviour;
+    protected LimitedBehaviour doctorTimeBehaviour;
+    protected Behaviour detectiveTimeBehaviour;
+    protected Behaviour sniperTimeBehaviour;
+    protected Behaviour psychologistTimeBehaviour;
+    protected LimitedBehaviour diehardTimeBehaviour;
 
 
     public Character(ObjectOutputStream output, ObjectInputStream input,
@@ -61,12 +64,28 @@ public abstract class Character {
         return godFatherTimeBehaviour;
     }
 
-    public DoctorTimeBehaviour getDoctorLecterTimeBehaviour() {
+    public LimitedBehaviour getDoctorLecterTimeBehaviour() {
         return doctorLecterTimeBehaviour;
     }
 
-    public DoctorTimeBehaviour getDoctorTimeBehaviour() {
+    public LimitedBehaviour getDoctorTimeBehaviour() {
         return doctorTimeBehaviour;
+    }
+
+    public Behaviour getDetectiveTimeBehaviour() {
+        return detectiveTimeBehaviour;
+    }
+
+    public Behaviour getSniperTimeBehaviour() {
+        return sniperTimeBehaviour;
+    }
+
+    public Behaviour getPsychologistTimeBehaviour() {
+        return psychologistTimeBehaviour;
+    }
+
+    public LimitedBehaviour getDiehardTimeBehaviour() {
+        return diehardTimeBehaviour;
     }
 }
 

@@ -1,11 +1,9 @@
 package com.company;
 
-public class DoctorTreat extends LimitedBehaviour {
+public class SniperTreat extends Behaviour{
 
-
-    public DoctorTreat(Character character) {
+    public SniperTreat(Character character) {
         super(character);
-        treat = 1;
     }
 
     @Override
@@ -14,13 +12,12 @@ public class DoctorTreat extends LimitedBehaviour {
         if (behaviourDone)
             return;
 
-
         sleepThread(1000);
         sendMessage(new Message("God", "Clients list :"));
         sleepThread(1000);
         sendMessage(new Message("God", game.clientsList()));
         sleepThread(1000);
-        sendMessage(new Message("God", "Choose a person to cure"));
+        sendMessage(new Message("God", "Choose a person you want to kill"));
 
         while (true) {
 
@@ -31,16 +28,8 @@ public class DoctorTreat extends LimitedBehaviour {
 
             if (myChoice != null) {
 
-                if (myChoice == client) {
 
-                    if (treat <= 0) {
-                        sendMessage(new Message("God", "You have chosen yourself before :/"));
-                        continue;
-                    }
-                    treat--;
-                }
-
-                game.setDoctorChoice(myChoice);
+                game.setSniperChoice(myChoice);
                 sendMessage(new Message("God", "Done"));
                 break;
 

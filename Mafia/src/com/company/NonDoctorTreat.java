@@ -1,6 +1,6 @@
 package com.company;
 
-public class NonDoctorTreat extends DoctorTimeBehaviour{
+public class NonDoctorTreat extends LimitedBehaviour {
 
 
     public NonDoctorTreat(Character character) {

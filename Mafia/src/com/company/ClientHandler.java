@@ -62,6 +62,10 @@ public class ClientHandler extends Thread {
         }
     }
 
+    public void setSilent(boolean silent) {
+        isSilent = silent;
+    }
+
     public Socket getSocket() {
         return socket;
     }
@@ -287,6 +291,23 @@ public class ClientHandler extends Thread {
                 character.getDoctorTimeBehaviour().run();
                 sleepThread(1000);
             }
+            else if(mode == Mode.DetectiveTime){
+                character.getDetectiveTimeBehaviour().run();
+                sleepThread(1000);
+            }
+            else if(mode == Mode.SniperTime){
+                character.getSniperTimeBehaviour().run();
+                sleepThread(1000);
+            }
+            else if(mode == Mode.PsychologistTime){
+                character.getPsychologistTimeBehaviour().run();
+                sleepThread(1000);
+            }
+            else if(mode == Mode.DieHardTime){
+                character.getDiehardTimeBehaviour().run();
+                sleepThread(1000);
+            }
+
         }
     }
 

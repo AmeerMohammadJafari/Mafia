@@ -15,6 +15,10 @@ public class Detective extends Character{
         godFatherTimeBehaviour = new NonGodFatherTreat(this);
         doctorLecterTimeBehaviour = new NonDoctorLecterTreat(this);
         doctorTimeBehaviour = new NonDoctorTreat(this);
+        detectiveTimeBehaviour = new DetectiveTreat(this);
+        sniperTimeBehaviour = new NonSniperTreat(this);
+        psychologistTimeBehaviour = new NonPsychologistTreat(this);
+        diehardTimeBehaviour = new NonDiehardTreat(this);
 
     }
 

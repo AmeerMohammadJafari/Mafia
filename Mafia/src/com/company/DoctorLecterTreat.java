@@ -1,10 +1,12 @@
+
 package com.company;
 
-public class DoctorLecterTreat extends DoctorTimeBehaviour {
+public class DoctorLecterTreat extends LimitedBehaviour {
 
 
     public DoctorLecterTreat(Character character) {
         super(character);
+        treat = 1;
     }
 
     @Override
@@ -26,11 +28,12 @@ public class DoctorLecterTreat extends DoctorTimeBehaviour {
             if (myChoice != null) {
 
                 if (myChoice == client) {
-                    treat--;
-                    if (treat < 0) {
+
+                    if (treat <= 0) {
                         sendMessage(new Message("God", "You have chosen yourself before :/"));
                         continue;
                     }
+                    treat--;
                 }
 
                 game.setDoctorLecterChoice(myChoice);
@@ -41,7 +44,6 @@ public class DoctorLecterTreat extends DoctorTimeBehaviour {
                 sendMessage(new Message("God", ":|"));
             }
         }
-
         behaviourDone = true;
     }
 }

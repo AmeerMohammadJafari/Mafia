@@ -16,6 +16,10 @@ public class GodFather extends Character{
         godFatherTimeBehaviour = new GodFatherTreat(this);
         doctorLecterTimeBehaviour = new NonDoctorLecterTreat(this);
         doctorTimeBehaviour = new NonDoctorTreat(this);
+        detectiveTimeBehaviour = new NonDetectiveTreat(this);
+        sniperTimeBehaviour = new NonSniperTreat(this);
+        psychologistTimeBehaviour = new NonPsychologistTreat(this);
+        diehardTimeBehaviour = new NonDiehardTreat(this);
 
     }
 

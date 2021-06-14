@@ -17,6 +17,7 @@ public class Game extends Thread {
     private ClientHandler godFatherChoice;
     private ClientHandler doctorLecterChoice;
     private ClientHandler doctorChoice;
+    private ClientHandler sniperChoice;
 
     public Game(Vector<ClientHandler> clients, int numberOfClients) {
         this.clients = clients;
@@ -25,6 +26,14 @@ public class Game extends Thread {
         villagers = new Vector<>();
         mafias = new Vector<>();
         removedRoles = new ArrayList<>();
+    }
+
+    public ArrayList<Role> getRemovedRoles() {
+        return removedRoles;
+    }
+
+    public void setSniperChoice(ClientHandler sniperChoice) {
+        this.sniperChoice = sniperChoice;
     }
 
     public void setDoctorChoice(ClientHandler doctorChoice) {
@@ -580,7 +589,7 @@ public class Game extends Thread {
         sendToAll(new Message("God", "Doctor Time"));
         ClientHandler doctor = null;
         for(ClientHandler c : clients){
-            if(c.getRole() == Role.Doctor)
+            if(c.getRole() == Role.Doctor && c.isAlive())
                 doctor = c;
         }
         // TODO if null, means that doctor is dead
@@ -600,6 +609,105 @@ public class Game extends Thread {
         sleepThread(3000);
     }
 
+
+    private void detective(){
+        sendToAll(new Message("God", "Detective Time"));
+        ClientHandler detective = null;
+        for(ClientHandler c : clients){
+            if(c.getRole() == Role.Detective && c.isAlive())
+                detective = c;
+        }
+        // TODO if null, means that detective is dead
+        // loop until the doctor done his work
+        while(!detective.getCharacter().getDetectiveTimeBehaviour().behaviourDone){
+            sleepThread(1000);
+        }
+        sendToAll(new Message("God", "Detective done his work."));
+        ClientHandler.setMode(Mode.SniperTime);
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c.getCharacter().getDetectiveTimeBehaviour() instanceof NonDetectiveTreat) {
+                    c.sendMessage(new Message("God", "enter"));
+                }
+            }
+        }
+        sleepThread(3000);
+
+    }
+
+
+    private void sniper(){
+        sendToAll(new Message("God", "Sniper Time"));
+        ClientHandler sniper = null;
+        for(ClientHandler c : clients){
+            if(c.getRole() == Role.Sniper && c.isAlive())
+                sniper = c;
+        }
+        // TODO if null, means that detective is dead
+
+        while(!sniper.getCharacter().getSniperTimeBehaviour().behaviourDone){
+            sleepThread(1000);
+        }
+        sendToAll(new Message("God", "Sniper chooses someone."));
+        ClientHandler.setMode(Mode.PsychologistTime);
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c.getCharacter().getSniperTimeBehaviour() instanceof NonSniperTreat) {
+                    c.sendMessage(new Message("God", "enter"));
+                }
+            }
+        }
+        sleepThread(3000);
+    }
+
+
+    private void psychologist(){
+        sendToAll(new Message("God", "Psychologist Time"));
+        ClientHandler psycho = null;
+        for(ClientHandler c : clients){
+            if(c.getRole() == Role.Psychologist && c.isAlive())
+                psycho = c;
+        }
+        // TODO if null, means that detective is dead
+
+        while(!psycho.getCharacter().getPsychologistTimeBehaviour().behaviourDone){
+            sleepThread(1000);
+        }
+        sendToAll(new Message("God", "Psychologist chooses someone."));
+        ClientHandler.setMode(Mode.DieHardTime);
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c.getCharacter().getPsychologistTimeBehaviour() instanceof NonPsychologistTreat) {
+                    c.sendMessage(new Message("God", "enter"));
+                }
+            }
+        }
+        sleepThread(3000);
+    }
+
+    private void diehard(){
+        sendToAll(new Message("God", "Diehard Time"));
+        ClientHandler diehard = null;
+        for(ClientHandler c : clients){
+            if(c.getRole() == Role.Diehard && c.isAlive())
+                diehard = c;
+        }
+        // TODO if null, means that detective is dead
+
+        while(!diehard.getCharacter().getDiehardTimeBehaviour().behaviourDone){
+            sleepThread(1000);
+        }
+        sendToAll(new Message("God", "Diehard did his work."));
+        ClientHandler.setMode(Mode.EndOfNight);
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c.getCharacter().getDiehardTimeBehaviour() instanceof NonDiehardTreat) {
+                    c.sendMessage(new Message("God", "enter"));
+                }
+            }
+        }
+        sleepThread(3000);
+    }
 
     @Override
     public void run() {
@@ -635,6 +743,14 @@ public class Game extends Thread {
         doctorLecter();
 
         doctor();
+
+        detective();
+
+        sniper();
+
+        psychologist();
+
+        diehard();
 
 
     }
