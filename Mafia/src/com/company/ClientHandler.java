@@ -194,8 +194,28 @@ public class ClientHandler extends Thread {
 
     public static ClientHandler isClientName(String text) {
         for (ClientHandler c : clients) {
-            if (c.isLoggedIn) {
-                if (c.getClientName().equals(text) && c.isAlive) {
+            if (c.isAlive) {
+                if (c.getClientName().equals(text)) {
+                    return c;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static ClientHandler isMafiaName(String text) {
+        for (ClientHandler c : clients) {
+            if (c.getClientName().equals(text) && Role.isMafia(c.getRole()) && c.isAlive) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    public static ClientHandler isVillagerName(String text) {
+        for (ClientHandler c : clients) {
+            if (c.isAlive) {
+                if (c.getClientName().equals(text) && !Role.isMafia(c.getRole())) {
                     return c;
                 }
             }
@@ -247,8 +267,6 @@ public class ClientHandler extends Thread {
                 character.getMayorTimeBehaviour().run();
                 sleepThread(1000);
             } else if (mode == Mode.RemoveByVote) {
-                // better to add a method for waiting
-                waitTillRemove();
                 sleepThread(1000);
                 // the game will handle this part
             } else if (mode == Mode.MafiasVote) {
@@ -261,6 +279,12 @@ public class ClientHandler extends Thread {
                 sleepThread(1000);
             } else if (mode == Mode.GodFatherTime) {
                 character.getGodFatherTimeBehaviour().run();
+                sleepThread(1000);
+            } else if (mode == Mode.DoctorLecterTime) {
+                character.getDoctorLecterTimeBehaviour().run();
+                sleepThread(1000);
+            } else if (mode == Mode.DoctorTime) {
+                character.getDoctorTimeBehaviour().run();
                 sleepThread(1000);
             }
         }
@@ -415,9 +439,9 @@ public class ClientHandler extends Thread {
         }
     }
 
-    private void waitTillRemove(){ // the removed one also use this
-        receiveMessage();
-        if(mode == Mode.RemoveByVote){
+    private void waitTillRemove() { // the removed one also use this
+        Message message = receiveMessage();
+        if (mode == Mode.RemoveByVote) {
             sendMessage(new Message("God", "Wait"));
         }
     }

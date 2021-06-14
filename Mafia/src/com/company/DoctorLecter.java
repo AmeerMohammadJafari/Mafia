@@ -12,6 +12,8 @@ public class DoctorLecter extends Character{
         mayorTimeBehaviour = new NonMayorTreat(this);
         mafiasVoteTimeBehaviour = new MafiasVoteTreat(this);
         godFatherTimeBehaviour = new NonGodFatherTreat(this);
+        doctorLecterTimeBehaviour = new DoctorLecterTreat(this);
+        doctorTimeBehaviour = new NonDoctorTreat(this);
 
     }
 

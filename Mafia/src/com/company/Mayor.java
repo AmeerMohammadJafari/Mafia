@@ -2,7 +2,6 @@ package com.company;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Vector;
 
 public class Mayor extends Character{
 
@@ -14,6 +13,9 @@ public class Mayor extends Character{
         mayorTimeBehaviour = new MayorTreat(this);
         mafiasVoteTimeBehaviour = new NonMafiasTreat(this);
         godFatherTimeBehaviour = new NonGodFatherTreat(this);
+        doctorLecterTimeBehaviour = new NonDoctorLecterTreat(this);
+        doctorTimeBehaviour = new NonDoctorTreat(this);
+
     }
 
 

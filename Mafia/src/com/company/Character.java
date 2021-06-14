@@ -15,6 +15,8 @@ public abstract class Character {
     protected Behaviour mayorTimeBehaviour;
     protected MafiasVoteTimeBehaviour mafiasVoteTimeBehaviour;
     protected Behaviour godFatherTimeBehaviour;
+    protected DoctorTimeBehaviour doctorLecterTimeBehaviour;
+    protected DoctorTimeBehaviour doctorTimeBehaviour;
 
 
     public Character(ObjectOutputStream output, ObjectInputStream input,
@@ -57,6 +59,14 @@ public abstract class Character {
 
     public Behaviour getGodFatherTimeBehaviour() {
         return godFatherTimeBehaviour;
+    }
+
+    public DoctorTimeBehaviour getDoctorLecterTimeBehaviour() {
+        return doctorLecterTimeBehaviour;
+    }
+
+    public DoctorTimeBehaviour getDoctorTimeBehaviour() {
+        return doctorTimeBehaviour;
     }
 }
 

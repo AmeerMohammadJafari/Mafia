@@ -42,7 +42,7 @@ public class Client {
         } catch (EOFException e) {
             System.exit(0);
         } catch (IOException | ClassNotFoundException | ClassCastException e) {
-
+            e.printStackTrace();
         }
         return message;
     }
@@ -91,7 +91,7 @@ public class Client {
 
                     }
                 }catch (NullPointerException ignored){
-
+                    System.out.println("null in readOnly");
                 }
             }
         }

@@ -15,6 +15,8 @@ public class Game extends Thread {
     private boolean mayorConfirmation;
     private ArrayList<Role> removedRoles;
     private ClientHandler godFatherChoice;
+    private ClientHandler doctorLecterChoice;
+    private ClientHandler doctorChoice;
 
     public Game(Vector<ClientHandler> clients, int numberOfClients) {
         this.clients = clients;
@@ -23,6 +25,14 @@ public class Game extends Thread {
         villagers = new Vector<>();
         mafias = new Vector<>();
         removedRoles = new ArrayList<>();
+    }
+
+    public void setDoctorChoice(ClientHandler doctorChoice) {
+        this.doctorChoice = doctorChoice;
+    }
+
+    public void setDoctorLecterChoice(ClientHandler doctorLecterChoice) {
+        this.doctorLecterChoice = doctorLecterChoice;
     }
 
     public void setGodFatherChoice(ClientHandler godFatherChoice) {
@@ -50,8 +60,22 @@ public class Game extends Thread {
         int i = 1;
         for (ClientHandler c : clients) {
             synchronized (c) {
-                if (Role.isMafia(c.getRole())) {
-                    list += i + ". " + c.getClientName();
+                if (Role.isMafia(c.getRole()) && c.isAlive()) {
+                    list += i + "." + c.getClientName() + " ";
+                    i++;
+                }
+            }
+        }
+        return list;
+    }
+
+    public String clientsList(){
+        String list = "";
+        int i = 1;
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c.isAlive()) {
+                    list += i + "." + c.getClientName() + " ";
                     i++;
                 }
             }
@@ -356,6 +380,9 @@ public class Game extends Thread {
         ClientHandler.setMode(Mode.MayorTime);
     }
 
+    // have to consider the death of every character
+
+
     public void mayorTime() {
 
         ClientHandler mayor = null;
@@ -452,13 +479,13 @@ public class Game extends Thread {
             }
         }
 
-        for (ClientHandler c : clients) {
+        /*for (ClientHandler c : clients) {
             synchronized (c) {
                 if (c != removedByVote) {
                     c.sendMessage(new Message("God", "enter")); // used for sticking
                 }
             }
-        }
+        }*/
         removedByVote = null;
         ClientHandler.setMode(Mode.MafiasVote);
     }
@@ -520,6 +547,57 @@ public class Game extends Thread {
                 }
             }
         }
+        sleepThread(3000);
+    }
+
+    private void doctorLecter(){
+
+        sendToAll(new Message("God", "DoctorLecter Time"));
+        ClientHandler doctorLecter = null;
+        for(ClientHandler c : clients){
+            if(c.getRole() == Role.DoctorLecter)
+                doctorLecter = c;
+        }
+        // TODO if null, means that doctorLecter is dead
+        // loop until the doctor done his work
+        while(!doctorLecter.getCharacter().getDoctorLecterTimeBehaviour().behaviourDone){
+            sleepThread(1000);
+        }
+        sendToAll(new Message("God", "DoctorLecter chooses someone."));
+        ClientHandler.setMode(Mode.DoctorTime);
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c.getCharacter().getDoctorLecterTimeBehaviour() instanceof NonDoctorLecterTreat) {
+                    c.sendMessage(new Message("God", "enter"));
+                }
+            }
+        }
+        sleepThread(3000);
+    }
+
+    private void doctor(){
+
+        sendToAll(new Message("God", "Doctor Time"));
+        ClientHandler doctor = null;
+        for(ClientHandler c : clients){
+            if(c.getRole() == Role.Doctor)
+                doctor = c;
+        }
+        // TODO if null, means that doctor is dead
+        // loop until the doctor done his work
+        while(!doctor.getCharacter().getDoctorTimeBehaviour().behaviourDone){
+            sleepThread(1000);
+        }
+        sendToAll(new Message("God", "Doctor chooses someone."));
+        ClientHandler.setMode(Mode.DetectiveTime);
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (c.getCharacter().getDoctorTimeBehaviour() instanceof NonDoctorLecterTreat) {
+                    c.sendMessage(new Message("God", "enter"));
+                }
+            }
+        }
+        sleepThread(3000);
     }
 
 
@@ -553,6 +631,10 @@ public class Game extends Thread {
         endConsult();
 
         godFather();
+
+        doctorLecter();
+
+        doctor();
 
 
     }
