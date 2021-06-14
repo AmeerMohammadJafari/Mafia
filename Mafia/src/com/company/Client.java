@@ -37,12 +37,10 @@ public class Client {
         Message message = null;
         try {
             message = (Message) input.readObject();
-        } catch (StreamCorruptedException e) {
-
         } catch (EOFException e) {
             System.exit(0);
         } catch (IOException | ClassNotFoundException | ClassCastException e) {
-            e.printStackTrace();
+
         }
         return message;
     }
@@ -75,24 +73,19 @@ public class Client {
         class GetMessageOnly extends Thread {
             @Override
             public void run() {
-                try {
                     while (true) {
-                        Message message = receiveMessage();
+                        try {
+                            Message message = receiveMessage();
 
-                        if(message.getName().equals("God") && message.getText().equals("enter")){
-                            justSendMessage();
+                            if (message.getName().equals("God") && message.getText().equals("enter")) {
+                                justSendMessage();
+                            } else {
+                                showMessage(message);
+                            }
+                        }catch (NullPointerException e){
+
                         }
-                        else{
-                            showMessage(message);
-                        }
-
-
-
-
                     }
-                }catch (NullPointerException ignored){
-                    System.out.println("null in readOnly");
-                }
             }
         }
 

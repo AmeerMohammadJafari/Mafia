@@ -22,14 +22,27 @@ public abstract class Behaviour {
          behaviourDone = false;
     }
 
+    public void setBehaviourDone(boolean behaviourDone) {
+        this.behaviourDone = behaviourDone;
+    }
+
     protected void sendMessage(Message message) {
         try {
             output.writeObject(message);
-        }catch (SocketException e){
-            client = null;
-        }
-        catch (IOException e) {
+        } catch (SocketException e) {
+            System.out.println("socket exception");
+        } catch (IOException e) {
             e.printStackTrace();
+        }
+        // send all the messages for dead clients to
+        for(ClientHandler c : game.getClients()){
+            if(!c.isAliveClient() && c != client){
+                try {
+                    c.getOutput().writeObject(message);
+                }catch (IOException e){
+
+                }
+            }
         }
     }
 
@@ -37,11 +50,21 @@ public abstract class Behaviour {
         Message message = null;
         try {
             message = (Message) input.readObject();
-        } catch (SocketException e){
-            client = null;
-        }
-        catch (IOException | ClassNotFoundException e) {
+        } catch (SocketException e) {
+            System.out.println("Socket exception");
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+        }
+
+        // send this message for the player which is dead
+        for(ClientHandler c : game.getClients()){
+            if(!c.isAliveClient() && c != client){
+                try {
+                    c.getOutput().writeObject(message);
+                }catch (IOException e){
+
+                }
+            }
         }
         return message;
     }

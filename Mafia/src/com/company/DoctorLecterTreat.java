@@ -15,7 +15,7 @@ public class DoctorLecterTreat extends LimitedBehaviour {
             return;
 
 
-        sleepThread(1000);
+        sleepThread(3000);
         sendMessage(new Message("God", "Choose one of your teammates to cure"));
         sleepThread(1000);
         sendMessage(new Message("God", "The mafias list\n" + game.mafiasList()));

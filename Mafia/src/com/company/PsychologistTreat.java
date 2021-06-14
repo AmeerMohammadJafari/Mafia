@@ -28,7 +28,7 @@ public class PsychologistTreat extends Behaviour{
             if (myChoice != null) {
 
 
-                myChoice.setSilent(true);
+                game.setPsychologistChoice(myChoice);
                 sendMessage(new Message("God", "Done"));
                 break;
 

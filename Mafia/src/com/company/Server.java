@@ -58,7 +58,7 @@ public class Server {
         while(true) {
             System.out.print("Please enter the number of players : ");
             num = in.nextInt();
-            if (num >= 8) {
+            if (num >= 10) {
                 break;
             } else
                 System.out.println("The number of players must be at least 8");

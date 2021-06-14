@@ -15,7 +15,7 @@ public class DoctorTreat extends LimitedBehaviour {
             return;
 
 
-        sleepThread(1000);
+        sleepThread(3000);
         sendMessage(new Message("God", "Clients list :"));
         sleepThread(1000);
         sendMessage(new Message("God", game.clientsList()));

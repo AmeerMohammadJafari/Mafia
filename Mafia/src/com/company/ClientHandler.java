@@ -29,7 +29,7 @@ public class ClientHandler extends Thread {
     private Character character;
     private int health;
     private boolean mayorIntro;
-    private boolean isAlive; // TODO must handle this field very carefully
+    private boolean aliveClient; // TODO must handle this field very carefully
     private boolean consultStarted;
 
 
@@ -50,7 +50,7 @@ public class ClientHandler extends Thread {
         myVote = null;
         character = null;
         mayorIntro = false;
-        isAlive = true;
+        aliveClient = true;
         consultStarted = false;
 
         try {
@@ -62,6 +62,9 @@ public class ClientHandler extends Thread {
         }
     }
 
+    public boolean isAliveClient() {
+        return aliveClient;
+    }
 
     public void setSilent(boolean silent) {
         isSilent = silent;
@@ -71,8 +74,8 @@ public class ClientHandler extends Thread {
         return socket;
     }
 
-    public void setAlive(boolean alive) {
-        isAlive = alive;
+    public void setAliveClient(boolean aliveClient) {
+        this.aliveClient = aliveClient;
     }
 
     public Character getCharacter() {
@@ -157,6 +160,16 @@ public class ClientHandler extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        // send all the messages for dead clients to
+        for(ClientHandler c : clients){
+            if(!c.isAliveClient() && c != this){
+                try {
+                    c.getOutput().writeObject(message);
+                }catch (IOException e){
+
+                }
+            }
+        }
     }
 
     public Message receiveMessage() {
@@ -168,12 +181,23 @@ public class ClientHandler extends Thread {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+
+        // send this message for the player which is dead
+        for(ClientHandler c : clients){
+            if(!c.isAliveClient() && c != this){
+                try {
+                    c.getOutput().writeObject(message);
+                }catch (IOException e){
+
+                }
+            }
+        }
         return message;
     }
 
     private void sendToOthers(Message message) {
         for (ClientHandler c : clients) {
-            if (c != this)
+            if (c != this && c.isAliveClient())
                 c.sendMessage(message);
         }
     }
@@ -200,7 +224,7 @@ public class ClientHandler extends Thread {
 
     public static ClientHandler isClientName(String text) {
         for (ClientHandler c : clients) {
-            if (c.isAlive) {
+            if (c.isAliveClient()) {
                 if (c.getClientName().equals(text)) {
                     return c;
                 }
@@ -211,7 +235,7 @@ public class ClientHandler extends Thread {
 
     public static ClientHandler isMafiaName(String text) {
         for (ClientHandler c : clients) {
-            if (c.getClientName().equals(text) && Role.isMafia(c.getRole()) && c.isAlive) {
+            if (c.getClientName().equals(text) && Role.isMafia(c.getRole()) && c.isAliveClient()) {
                 return c;
             }
         }
@@ -220,7 +244,7 @@ public class ClientHandler extends Thread {
 
     public static ClientHandler isVillagerName(String text) {
         for (ClientHandler c : clients) {
-            if (c.isAlive) {
+            if (c.isAliveClient()) {
                 if (c.getClientName().equals(text) && !Role.isMafia(c.getRole())) {
                     return c;
                 }
@@ -309,6 +333,17 @@ public class ClientHandler extends Thread {
                 character.getDiehardTimeBehaviour().run();
                 sleepThread(1000);
             }
+            else if(gameMode == Mode.EndOfNight){
+
+            }
+            else if(gameMode == Mode.CanOnlyWatch){
+                System.out.println(clientName + "enter the can only mode");
+                onlyWatch();
+                sleepThread(1000);
+            }
+            else if(gameMode == Mode.OutOfGame){
+
+            }
 
         }
     }
@@ -354,7 +389,6 @@ public class ClientHandler extends Thread {
 
 
     private void sendRole() {
-        System.out.println("send the role to " + clientName);
         sendMessage(new Message("God", "You are " + this.role.toString()));
         sendRole = true;
     }
@@ -462,12 +496,12 @@ public class ClientHandler extends Thread {
         }
     }
 
-    private void waitTillRemove() { // the removed one also use this
+    /*private void waitTillRemove() { // the removed one also use this
         Message message = receiveMessage();
         if (gameMode == Mode.RemoveByVote) {
             sendMessage(new Message("God", "Wait"));
         }
-    }
+    }*/
 
     private void mayorTimeIntro() {
 
@@ -486,6 +520,15 @@ public class ClientHandler extends Thread {
         sleepThread(1000);
         sendMessage(new Message("God", "Now mafias have to decide who should be killed"));
         consultStarted = true;
+    }
+
+    private void onlyWatch(){
+        try {
+            input.readObject();
+        }catch (IOException | ClassNotFoundException e){
+
+        }
+        sendMessage(new Message("God", "You can only watch the game"));
     }
 
 }
