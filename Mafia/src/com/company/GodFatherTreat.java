@@ -21,7 +21,11 @@ public class GodFatherTreat extends Behaviour{
                     entry.getValue().getClientName()));
         }
         sleepThread(3000);
+        sendMessage(new Message("God", "Clients list"));
+        sleepThread(1000);
+        sendMessage(new Message("God", game.clientsList()));
         sendMessage(new Message("God", "Now choose someone you want to kill"));
+
 
         while(true){
             Message message = receiveMessage();

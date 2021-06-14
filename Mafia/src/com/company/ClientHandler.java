@@ -366,17 +366,23 @@ public class ClientHandler extends Thread {
                 sleepThread(1000);
             }
             else if(gameMode == Mode.EndOfNight){
-
+                sleepThread(1000);
             }
             else if(gameMode == Mode.CanOnlyWatch){
                 onlyWatch();
                 sleepThread(1000);
             }
             else if(gameMode == Mode.OutOfGame){
-
+                sleepThread(10 * 1000);
             }
-
-
+            else if(gameMode == Mode.MafiasWin){
+                mafiasWin();
+                return;
+            }
+            else if(gameMode == Mode.VillagersWin){
+                villagersWin();
+                return;
+            }
         }
     }
 
@@ -494,7 +500,7 @@ public class ClientHandler extends Thread {
     }
 
     private void voteIntro() {
-
+        isSilent = false;
         sendMessage(new Message("God", "The voting is starting."));
 
         sleepThread(1000);
@@ -560,6 +566,14 @@ public class ClientHandler extends Thread {
 
         }
         sendMessage(new Message("God", "You can only watch the game"));
+    }
+
+    private void mafiasWin(){
+        sendMessage(new Message("God", "The mafias win the game"));
+    }
+
+    private void villagersWin(){
+        sendMessage(new Message("God", "The villagers win"));
     }
 
 }

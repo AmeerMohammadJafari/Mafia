@@ -95,6 +95,20 @@ public class Game extends Thread {
         return list;
     }
 
+    public String villagersList() {
+        String list = "";
+        int i = 1;
+        for (ClientHandler c : clients) {
+            synchronized (c) {
+                if (!Role.isMafia(c.getRole()) && c.isAliveClient()) {
+                    list += i + "." + c.getClientName() + " ";
+                    i++;
+                }
+            }
+        }
+        return list;
+    }
+
     public String clientsList() {
         String list = "";
         int i = 1;
@@ -116,8 +130,10 @@ public class Game extends Thread {
 
         for (ClientHandler c : clients) {
             synchronized (c) {
-                if (!c.isLoggedIn())
-                    return false;
+                if (c.isAliveClient()) {
+                    if (!c.isLoggedIn())
+                        return false;
+                }
             }
         }
         return true;
@@ -131,7 +147,7 @@ public class Game extends Thread {
 
     private boolean allSendRole() {
         for (ClientHandler c : clients) {
-            if (!c.isSendRole())
+            if (!c.isSendRole() && c.isAliveClient())
                 return false;
         }
         return true;
@@ -147,7 +163,7 @@ public class Game extends Thread {
     private boolean allIntroduced() {
         for (ClientHandler c : clients) {
             synchronized (c) {
-                if (!c.isIntroduced())
+                if (!c.isIntroduced() && c.isAliveClient())
                     return false;
             }
         }
@@ -162,8 +178,9 @@ public class Game extends Thread {
 
     private boolean allClientReady() {
         for (ClientHandler c : clients) {
-            if (!c.isReady())
-                return false;
+            if (c.isAliveClient())
+                if (!c.isReady())
+                    return false;
         }
         return true;
     }
@@ -301,8 +318,10 @@ public class Game extends Thread {
     private boolean allChatIntro() {
         for (ClientHandler c : clients) {
             synchronized (c) {
-                if (!c.isChatStarted())
-                    return false;
+                if (c.isAliveClient()) {
+                    if (!c.isChatStarted())
+                        return false;
+                }
             }
         }
         return true;
@@ -709,7 +728,7 @@ public class Game extends Thread {
         while (!sniper.getCharacter().getSniperTimeBehaviour().behaviourDone) {
             sleepThread(1000);
         }
-        sendToAll(new Message("God", "Sniper chooses someone."));
+        sendToAll(new Message("God", "Sniper done his work."));
         setModeForAll(Mode.PsychologistTime);
         for (ClientHandler c : clients) {
             synchronized (c) {
@@ -786,18 +805,18 @@ public class Game extends Thread {
 
     private void endOfTheNight() {
         sendToAll(new Message("God", "The end of the night, wait for the results"));
+        sleepThread(1000);
         // see who should be killed or not
-        // godFather dr and dr lecter   sniper   psycho
         if (godFatherChoice == doctorChoice)
             godFatherChoice = null;
         if (sniperChoice == doctorLecterChoice || sniperChoice == doctorChoice)
             sniperChoice = null;
 
-
         if (psychologistChoice != null) {
             sendToAll(new Message("God", psychologistChoice.getClientName() + " is silent"));
             psychologistChoice.setSilent(true);
         }
+
         if (godFatherChoice != null) {
             godFatherChoice.lowHealth();
             if (godFatherChoice.getHealth() == 0) {
@@ -813,8 +832,8 @@ public class Game extends Thread {
         if (sniperChoice != null) {
 
             if (!Role.isMafia(sniperChoice.getRole())) {
-                for(ClientHandler c : clients){
-                    if(c.getRole() == Role.Sniper && c.isAliveClient()){
+                for (ClientHandler c : clients) {
+                    if (c.getRole() == Role.Sniper && c.isAliveClient()) {
                         sniperChoice = c;
                         break;
                     }
@@ -830,9 +849,10 @@ public class Game extends Thread {
         }
 
 
-        if(godFatherChoice == null && sniperChoice == null && psychologistChoice == null && !diehardAct){
+        if (godFatherChoice == null && sniperChoice == null && psychologistChoice == null && !diehardAct) {
             sendToAll(new Message("God", "Nothing happens apparently"));
         }
+
         reset();
         setModeForAll(Mode.DayChatroom);
     }
@@ -860,6 +880,29 @@ public class Game extends Thread {
     }
 
 
+    private boolean gameOver() {
+        int mafias = 0;
+        int villagers = 0;
+        for (ClientHandler c : clients) {
+            if (c.isAliveClient()) {
+                if (Role.isMafia(c.getRole()))
+                    mafias++;
+                else
+                    villagers++;
+            }
+        }
+        if (mafias == 0) {
+            setModeForAll(Mode.VillagersWin);
+            return true;
+        }
+        if (mafias >= villagers) {
+            setModeForAll(Mode.MafiasWin);
+            return true;
+        }
+        return false;
+
+    }
+
     @Override
     public void run() {
 
@@ -879,34 +922,42 @@ public class Game extends Thread {
 
         setModeForAll(Mode.DayChatroom);
         /* ClientHandler.setMode(Mode.DayChatroom);*/
+        while (true) {
 
-        endChat(); // it sets the game mode to vote internally
+            endChat(); // it sets the game mode to vote internally
 
-        endVote(); // it sets the game to the resultOfVote internally
+            endVote(); // it sets the game to the resultOfVote internally
 
-        resultOfVote();
+            resultOfVote();
 
-        mayorTime();
+            mayorTime();
 
-        removeByVote(); // enter this method when a client is removedByVote
+            removeByVote(); // enter this method when a client is removedByVote
 
-        endConsult();
+            if (gameOver())
+                break;
 
-        godFather();
+            endConsult();
 
-        doctorLecter();
+            godFather();
 
-        doctor();
+            doctorLecter();
 
-        detective();
+            doctor();
 
-        sniper();
+            detective();
 
-        psychologist();
+            sniper();
 
-        diehard();
+            psychologist();
 
-        endOfTheNight();
+            diehard();
+
+            endOfTheNight();
+
+            if (gameOver())
+                break;
+        }
 
     }
 }

@@ -16,6 +16,8 @@ public class MafiasVoteTreat extends MafiasVoteTimeBehaviour {
 
         sendMessage(new Message("God", "The mafias list\n" + game.mafiasList()));
         sleepThread(1000);
+        sendMessage(new Message("God", "The villagers list\n" + game.villagersList()));
+        sleepThread(1000);
         sendMessage(new Message("God", "Choose the one you think should be killed"));
 
         while (true) {
