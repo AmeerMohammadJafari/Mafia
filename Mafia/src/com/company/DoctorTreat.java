@@ -18,15 +18,23 @@ public class DoctorTreat extends LimitedBehaviour {
         sleepThread(3000);
         sendMessage(new Message("God", "Clients list :"));
         sleepThread(1000);
-        sendMessage(new Message("God", game.clientsList()));
+        sendMessage(new Message("God", "Choose one the players to cure, or enter (no) " +
+                "if you dont want to save anyone"));
         sleepThread(1000);
-        sendMessage(new Message("God", "Choose a person to cure"));
+        sendMessage(new Message("God", game.clientsList()));
 
         while (true) {
 
             Message message = receiveMessage();
+            if(message.getText().equals("no")){
+                game.setDoctorChoice(null);
+                sendMessage(new Message("God", "Done"));
+                break;
+            }
+
             ClientHandler myChoice = null;
             myChoice = ClientHandler.isClientName(message.getText());
+
 
 
             if (myChoice != null) {

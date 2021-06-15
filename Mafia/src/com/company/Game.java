@@ -123,6 +123,15 @@ public class Game extends Thread {
         return list;
     }
 
+    private String removedList() {
+        String list = "";
+        int i = 1;
+        for (Role role : removedRoles) {
+            list += i + "." + role + " ";
+        }
+        return list;
+    }
+
     private boolean allAreLoggedIn() {
         if (clients.size() != numberOfClients) {
             return false;
@@ -178,7 +187,7 @@ public class Game extends Thread {
 
     private boolean allClientReady() {
         for (ClientHandler c : clients) {
-            if (c.isAliveClient())
+            if (c.isAliveClient() && !c.isSilent())
                 if (!c.isReady())
                     return false;
         }
@@ -188,7 +197,7 @@ public class Game extends Thread {
     private boolean allInMode(Mode mode) {
         for (ClientHandler c : clients) {
             synchronized (c) {
-                if (c.getGameMode() != mode)
+                if (c.getGameMode() != mode && c.isAliveClient())
                     return false;
             }
         }
@@ -363,7 +372,7 @@ public class Game extends Thread {
                 isDone[0] = true;
             }
         };
-        timer.schedule(timerTask, 5 * 60 * 1000);
+        timer.schedule(timerTask, 60 * 1000);
 
         while (!isDone[0]) {
             if (allClientReady()) {
@@ -381,8 +390,10 @@ public class Game extends Thread {
     private boolean allVoteStart() {
         for (ClientHandler c : clients) {
             synchronized (c) {
-                if (!c.isVoteStarted())
-                    return false;
+                if (c.isAliveClient()) {
+                    if (!c.isVoteStarted())
+                        return false;
+                }
             }
         }
         return true;
@@ -524,7 +535,19 @@ public class Game extends Thread {
         // the game will enter this method if there is a removedByVote client
         sleepThread(1000);
         if (allInMode(Mode.Remove)) {
+            sleepThread(1000);
             removeFromGame(removedByVote);
+            if(removedByVote.getRole() == Role.GodFather){
+                ClientHandler clientHandler = null;
+                for (ClientHandler c : clients) {
+                    if (Role.isMafia(c.getRole()) && c.isAliveClient()) {
+                        clientHandler = c;
+                        break;
+                    }
+                }
+                Character character = clientHandler.getCharacter();
+                character.setGodFatherTimeBehaviour(new GodFatherTreat(character));
+            }
             removedByVote = null;
             setModeForAll(Mode.MafiasVote);
         }
@@ -532,6 +555,7 @@ public class Game extends Thread {
 
 
     private void removeFromGame(ClientHandler c) {
+        sendToAll(new Message("God", "Wait for " + c.getClientName()));
         c.sendMessage(new Message("God", "You are removed from the game :("));
         sleepThread(1000);
         c.sendMessage(new Message("God", "If you still want to follow the game " +
@@ -759,7 +783,7 @@ public class Game extends Thread {
         while (!psycho.getCharacter().getPsychologistTimeBehaviour().behaviourDone) {
             sleepThread(1000);
         }
-        sendToAll(new Message("God", "Psychologist chooses someone."));
+        sendToAll(new Message("God", "Psychologist did his work."));
         setModeForAll(Mode.DieHardTime);
         for (ClientHandler c : clients) {
             synchronized (c) {
@@ -807,30 +831,14 @@ public class Game extends Thread {
         sendToAll(new Message("God", "The end of the night, wait for the results"));
         sleepThread(1000);
         // see who should be killed or not
-        if (godFatherChoice == doctorChoice)
+
+        if(godFatherChoice == doctorChoice){
             godFatherChoice = null;
-        if (sniperChoice == doctorLecterChoice || sniperChoice == doctorChoice)
-            sniperChoice = null;
-
-        if (psychologistChoice != null) {
-            sendToAll(new Message("God", psychologistChoice.getClientName() + " is silent"));
-            psychologistChoice.setSilent(true);
         }
 
-        if (godFatherChoice != null) {
-            godFatherChoice.lowHealth();
-            if (godFatherChoice.getHealth() == 0) {
-                sendToAll(new Message("God", godFatherChoice.getClientName() + " was killed last night."));
-                sleepThread(1000);
-                sendToAll(new Message("God", "wait for " + godFatherChoice.getClientName()));
-                setModeForAll(Mode.Remove);
-                removeFromGame(godFatherChoice);
-                setModeForAll(Mode.EndOfNight);
-            }
-        }
 
-        if (sniperChoice != null) {
-
+        // if the sniper chose villager, should be the sniperChoice himself
+        try {
             if (!Role.isMafia(sniperChoice.getRole())) {
                 for (ClientHandler c : clients) {
                     if (c.getRole() == Role.Sniper && c.isAliveClient()) {
@@ -839,8 +847,37 @@ public class Game extends Thread {
                     }
                 }
             }
+        }catch (NullPointerException ignored){
+
+        }
+
+
+        if (sniperChoice == doctorLecterChoice)
+            sniperChoice = null;
+
+
+        if (psychologistChoice != null) {
+            sleepThread(1000);
+            sendToAll(new Message("God", psychologistChoice.getClientName() + " is silent"));
+            psychologistChoice.setSilent(true);
+        }
+
+        if (godFatherChoice != null) {
+            godFatherChoice.lowHealth();
+            if (godFatherChoice.getHealth() == 0) {
+                sleepThread(1000);
+                sendToAll(new Message("God", godFatherChoice.getClientName() + " was killed last night."));
+                sleepThread(1000);
+                setModeForAll(Mode.Remove);
+                removeFromGame(godFatherChoice);
+                setModeForAll(Mode.EndOfNight);
+            }
+        }
+
+        if (sniperChoice != null) {
             sniperChoice.lowHealth();
             if (sniperChoice.getHealth() == 0) {
+                sleepThread(1000);
                 sendToAll(new Message("God", sniperChoice.getClientName() + " was killed last night."));
                 setModeForAll(Mode.Remove);
                 removeFromGame(sniperChoice);
@@ -848,12 +885,23 @@ public class Game extends Thread {
             }
         }
 
+        if (diehardAct) {
+            sleepThread(1000);
+            sendToAll(new Message("God", "Diehard use his act last night"));
+            sleepThread(1000);
+            sendToAll(new Message("God", "Removed Roles are :"));
+            sleepThread(1000);
+            sendToAll(new Message("God", removedList()));
+        }
+
 
         if (godFatherChoice == null && sniperChoice == null && psychologistChoice == null && !diehardAct) {
             sendToAll(new Message("God", "Nothing happens apparently"));
         }
 
+
         reset();
+        sleepThread(3000);
         setModeForAll(Mode.DayChatroom);
     }
 

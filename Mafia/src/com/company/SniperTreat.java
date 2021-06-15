@@ -36,6 +36,11 @@ public class SniperTreat extends Behaviour{
             if (myChoice != null) {
 
 
+                if(myChoice == client){
+                    sendMessage(new Message("God", ":|"));
+                    continue;
+                }
+
                 game.setSniperChoice(myChoice);
                 sendMessage(new Message("God", "Done"));
                 break;

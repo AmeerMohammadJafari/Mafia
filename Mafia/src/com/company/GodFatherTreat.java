@@ -15,12 +15,13 @@ public class GodFatherTreat extends Behaviour{
         if(behaviourDone)
             return;
 
+        sleepThread(2000);
         HashMap<ClientHandler,ClientHandler> voteMap = MafiasVoteTimeBehaviour.getVoteMap();
         for(Map.Entry<ClientHandler, ClientHandler> entry : voteMap.entrySet()){
             sendMessage(new Message("God", entry.getKey().getClientName() + " votes to " +
                     entry.getValue().getClientName()));
         }
-        sleepThread(3000);
+        sleepThread(1000);
         sendMessage(new Message("God", "Clients list"));
         sleepThread(1000);
         sendMessage(new Message("God", game.clientsList()));

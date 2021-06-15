@@ -27,12 +27,17 @@ public class PsychologistTreat extends Behaviour{
                 sendMessage(new Message("God", "Done"));
                 break;
             }
+
             ClientHandler myChoice = null;
             myChoice = ClientHandler.isClientName(message.getText());
 
 
             if (myChoice != null) {
 
+                if(myChoice == client){
+                    sendMessage(new Message("God", ":|"));
+                    continue;
+                }
 
                 game.setPsychologistChoice(myChoice);
                 sendMessage(new Message("God", "Done"));

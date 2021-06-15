@@ -61,6 +61,10 @@ public class ClientHandler extends Thread {
         }
     }
 
+    public boolean isSilent() {
+        return isSilent;
+    }
+
     public void setConsultStarted(boolean consultStarted) {
         this.consultStarted = consultStarted;
     }
@@ -246,7 +250,7 @@ public class ClientHandler extends Thread {
         String s = "";
         int i = 1;
         for (ClientHandler c : clients) {
-            if (c.isLoggedIn) {
+            if (c.isLoggedIn && c.isAliveClient()) {
                 s += i + ". " + c.getClientName() + " ";
             }
             i++;

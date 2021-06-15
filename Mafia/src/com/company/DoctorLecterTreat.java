@@ -16,14 +16,24 @@ public class DoctorLecterTreat extends LimitedBehaviour {
 
 
         sleepThread(3000);
-        sendMessage(new Message("God", "Choose one of your teammates to cure"));
+        sendMessage(new Message("God", "Choose one of your teammates to cure, or enter (no) " +
+                "if you dont want to save anyone"));
         sleepThread(1000);
         sendMessage(new Message("God", "The mafias list\n" + game.mafiasList()));
 
         while (true) {
 
             Message message = receiveMessage();
+
+            if(message.getText().equals("no")){
+                game.setDoctorLecterChoice(null);
+                sendMessage(new Message("God", "Done"));
+                break;
+            }
+
+
             ClientHandler myChoice = ClientHandler.isMafiaName(message.getText());
+
 
             if (myChoice != null) {
 

@@ -25,7 +25,10 @@ public class DetectiveTreat extends Behaviour {
             myChoice = ClientHandler.isClientName(message.getText());
 
             if (myChoice != null) {
-
+                if(myChoice == client) {
+                    sendMessage(new Message("God", ":|"));
+                    continue;
+                }
                 if(!Role.isMafia(myChoice.getRole()) || myChoice.getRole() == Role.GodFather){
                     sendMessage(new Message("God", "Not mafia"));
                 }

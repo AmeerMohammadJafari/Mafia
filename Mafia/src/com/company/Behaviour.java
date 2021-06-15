@@ -35,7 +35,7 @@ public abstract class Behaviour {
             e.printStackTrace();
         }
         // send all the messages for dead clients to
-        for(ClientHandler c : game.getClients()){
+        /*for(ClientHandler c : game.getClients()){
             if(!c.isAliveClient() && c != client){
                 try {
                     c.getOutput().writeObject(message);
@@ -43,7 +43,7 @@ public abstract class Behaviour {
 
                 }
             }
-        }
+        }*/
     }
 
     protected Message receiveMessage() {
@@ -55,7 +55,7 @@ public abstract class Behaviour {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-        assert message != null;
+        /*assert message != null;
         message.setName(client.getClientName());
         // send this message for the player which is dead
         for(ClientHandler c : game.getClients()){
@@ -66,7 +66,7 @@ public abstract class Behaviour {
 
                 }
             }
-        }
+        }*/
         return message;
     }
 
