@@ -22,6 +22,10 @@ public abstract class MafiasVoteTimeBehaviour extends Behaviour{
         voteMap = new HashMap<>();
     }
 
+    public static void setVoteMap(HashMap<ClientHandler, ClientHandler> voteMap) {
+        MafiasVoteTimeBehaviour.voteMap = voteMap;
+    }
+
     /**
      * Gets vote map.
      *

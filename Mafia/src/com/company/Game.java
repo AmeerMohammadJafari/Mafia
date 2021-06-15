@@ -436,11 +436,6 @@ public class Game extends Thread {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                /*for (ClientHandler c : clients) {
-                    synchronized (c) {
-                        c.setReady(true);
-                    }
-                } // makes every client ready*/
                 setModeForAll(Mode.Vote);
                 sleepThread(500);
                 sendToAll(new Message("God", "The chat is over."));
@@ -448,7 +443,7 @@ public class Game extends Thread {
                 isDone[0] = true;
             }
         };
-        timer.schedule(timerTask, 45 * 1000);
+        timer.schedule(timerTask, 5 * 60 * 1000);
 
         while (!isDone[0]) {
             if (allClientReady()) {
@@ -461,6 +456,7 @@ public class Game extends Thread {
             }
             sleepThread(1000);
         }
+        sleepThread(3000);
     }
 
     private boolean allVoteStart() {
@@ -893,6 +889,7 @@ public class Game extends Thread {
         // handling dead diehard
         if (!diehard.isAliveClient()) {
             diehard.getCharacter().getDiehardTimeBehaviour().setBehaviourDone(true);
+            diehardAct = false;
             sleepThread(10 * 1000);
         }
 
@@ -955,7 +952,7 @@ public class Game extends Thread {
                 sleepThread(1000);
                 sendToAll(new Message("God", godFatherChoice.getClientName() + " was killed last night."));
                 sleepThread(1000);
-                setModeForAll(Mode.Remove);
+               /* setModeForAll(Mode.Remove);*/
                 removeFromGame(godFatherChoice);
                 setModeForAll(Mode.EndOfNight);
             }
@@ -966,7 +963,7 @@ public class Game extends Thread {
             if (sniperChoice.getHealth() == 0) {
                 sleepThread(1000);
                 sendToAll(new Message("God", sniperChoice.getClientName() + " was killed last night."));
-                setModeForAll(Mode.Remove);
+               /* setModeForAll(Mode.Remove);*/
                 removeFromGame(sniperChoice);
                 setModeForAll(Mode.EndOfNight);
             }

@@ -63,6 +63,7 @@ public class ClientHandler extends Thread {
         mayorIntro = false;
         aliveClient = true;
         consultStarted = false;
+        removedRoles = new ArrayList<>();
 
         try {
             this.socket = socket;
@@ -391,7 +392,7 @@ public class ClientHandler extends Thread {
             setAliveClient(false);
             setGameMode(Mode.OutOfGame);
             removedRoles.add(role);
-
+            sendToOthers(new Message("God"));
             // closes the socket
             try {
                 getSocket().close();
@@ -442,8 +443,8 @@ public class ClientHandler extends Thread {
         for (ClientHandler c : clients) {
             if (c.isLoggedIn && c.isAliveClient()) {
                 s += i + ". " + c.getClientName() + " ";
+                i++;
             }
-            i++;
         }
         return s;
     }
@@ -579,7 +580,7 @@ public class ClientHandler extends Thread {
                 sleepThread(1000);
             }
             else if(gameMode == Mode.EndOfNight){
-                sleepThread(1000);
+                sleepThread(3000);
             }
             else if(gameMode == Mode.CanOnlyWatch){
                 onlyWatch();

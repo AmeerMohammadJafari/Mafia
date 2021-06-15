@@ -2,6 +2,7 @@ package com.company;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashMap;
 
 /**
  * This class is used inside all the clientHandlers
@@ -221,6 +222,7 @@ public abstract class Character {
         sniperTimeBehaviour.setBehaviourDone(false);
         psychologistTimeBehaviour.setBehaviourDone(false);
         diehardTimeBehaviour.setBehaviourDone(false);
+        MafiasVoteTimeBehaviour.setVoteMap(new HashMap<>());
     }
 }
 
