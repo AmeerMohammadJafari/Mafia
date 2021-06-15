@@ -3,8 +3,19 @@ package com.company;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+/**
+ * The DoctorLecter class
+ */
 public class DoctorLecter extends Character{
 
+    /**
+     * Instantiates a new Doctor lecter.
+     *
+     * @param output the output
+     * @param input  the input
+     * @param client the client
+     * @param game   the game
+     */
     public DoctorLecter(ObjectOutputStream output, ObjectInputStream input,
                      ClientHandler client,Game game){
         super(output, input, client, game);

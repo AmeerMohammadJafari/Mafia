@@ -1,8 +1,16 @@
 package com.company;
 
+/**
+ * The mafiasVoteTreat which extends mafiasVoteTimeBehaviour
+ */
 public class MafiasVoteTreat extends MafiasVoteTimeBehaviour {
 
 
+    /**
+     * Instantiates a new Mafias vote treat.
+     *
+     * @param character the character
+     */
     public MafiasVoteTreat(Character character) {
         super(character);
     }

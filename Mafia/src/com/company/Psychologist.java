@@ -3,9 +3,20 @@ package com.company;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+/**
+ * The Psychologist class which extends Character class
+ */
 public class Psychologist extends Character{
 
 
+    /**
+     * Instantiates a new Psychologist.
+     *
+     * @param output the output
+     * @param input  the input
+     * @param client the client
+     * @param game   the game
+     */
     public Psychologist(ObjectOutputStream output, ObjectInputStream input,
                      ClientHandler client,Game game){
         super(output, input, client, game);

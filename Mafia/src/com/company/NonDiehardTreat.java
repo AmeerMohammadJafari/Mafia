@@ -1,7 +1,15 @@
 package com.company;
 
+/**
+ * The NonDiehardTreat class which extends LimitedBehaviour
+ */
 public class NonDiehardTreat extends LimitedBehaviour{
 
+    /**
+     * Instantiates a new Non diehard treat.
+     *
+     * @param character the character
+     */
     public NonDiehardTreat(Character character) {
         super(character);
     }

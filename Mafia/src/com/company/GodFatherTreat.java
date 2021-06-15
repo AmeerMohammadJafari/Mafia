@@ -3,8 +3,16 @@ package com.company;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The GodFather treat class
+ */
 public class GodFatherTreat extends Behaviour{
 
+    /**
+     * Instantiates a new God father treat.
+     *
+     * @param character the character
+     */
     public GodFatherTreat(Character character) {
         super(character);
     }

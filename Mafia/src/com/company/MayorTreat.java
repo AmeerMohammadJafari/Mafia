@@ -1,8 +1,16 @@
 package com.company;
 
+/**
+ * The Mayor treat class which extends Behaviour
+ */
 public class MayorTreat extends Behaviour{
 
 
+    /**
+     * Instantiates a new Mayor treat.
+     *
+     * @param character the character
+     */
     public MayorTreat(Character character) {
         super(character);
     }

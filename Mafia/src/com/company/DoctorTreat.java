@@ -1,8 +1,16 @@
 package com.company;
 
+/**
+ * The Doctor Treat class
+ */
 public class DoctorTreat extends LimitedBehaviour {
 
 
+    /**
+     * Instantiates a new Doctor treat.
+     *
+     * @param character the character
+     */
     public DoctorTreat(Character character) {
         super(character);
         treat = 1;

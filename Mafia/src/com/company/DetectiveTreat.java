@@ -1,7 +1,15 @@
 package com.company;
 
+/**
+ * The Detective treat class
+ */
 public class DetectiveTreat extends Behaviour {
 
+    /**
+     * Instantiates a new Detective treat.
+     *
+     * @param character the character
+     */
     public DetectiveTreat(Character character) {
         super(character);
     }

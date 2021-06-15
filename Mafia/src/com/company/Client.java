@@ -3,8 +3,12 @@ package com.company;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
+/**
+ * This class is used for the Client side program
+ */
 public class Client {
 
     private Socket socket;
@@ -12,6 +16,11 @@ public class Client {
     private ObjectInputStream input;
 
 
+    /**
+     * Instantiates a new Client.
+     *
+     * @param port the port
+     */
     public Client(int port) {
 
         try {
@@ -105,10 +114,23 @@ public class Client {
     }
 
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
-        System.out.print("Please enter the port : ");
-        Scanner in = new Scanner(System.in);
-        int port = in.nextInt();
+        int port;
+        while(true) {
+            try {
+                System.out.print("Please enter the port : ");
+                Scanner in = new Scanner(System.in);
+                port = in.nextInt();
+                break;
+            }catch (InputMismatchException e){
+                System.out.println("Invalid input");
+            }
+        }
         Client client = new Client(port);
         client.startClient();
     }

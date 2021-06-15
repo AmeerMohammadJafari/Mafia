@@ -1,7 +1,15 @@
 package com.company;
 
+/**
+ * The PsychologistTreat class which extends Behaviour
+ */
 public class PsychologistTreat extends Behaviour{
 
+    /**
+     * Instantiates a new Psychologist treat.
+     *
+     * @param character the character
+     */
     public PsychologistTreat(Character character) {
         super(character);
     }

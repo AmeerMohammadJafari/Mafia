@@ -1,8 +1,16 @@
 package com.company;
 
+/**
+ * The NonDoctorTreat class which extends LimitedBehaviour
+ */
 public class NonDoctorTreat extends LimitedBehaviour {
 
 
+    /**
+     * Instantiates a new Non doctor treat.
+     *
+     * @param character the character
+     */
     public NonDoctorTreat(Character character) {
         super(character);
     }

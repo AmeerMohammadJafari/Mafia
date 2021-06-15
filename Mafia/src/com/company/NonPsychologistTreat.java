@@ -1,7 +1,15 @@
 package com.company;
 
+/**
+ * The NonPsychologistTreat which extends Behaviour
+ */
 public class NonPsychologistTreat extends Behaviour{
 
+    /**
+     * Instantiates a new Non psychologist treat.
+     *
+     * @param character the character
+     */
     public NonPsychologistTreat(Character character) {
         super(character);
     }

@@ -2,8 +2,16 @@ package com.company;
 
 import java.util.ArrayList;
 
+/**
+ * The Diehard treat
+ */
 public class DiehardTreat extends LimitedBehaviour{
 
+    /**
+     * Instantiates a new Diehard treat.
+     *
+     * @param character the character
+     */
     public DiehardTreat(Character character) {
         super(character);
         treat = 2;

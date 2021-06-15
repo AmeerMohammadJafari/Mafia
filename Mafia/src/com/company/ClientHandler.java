@@ -5,9 +5,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
+/**
+ * This class is used for handling every single Client
+ */
 public class ClientHandler extends Thread {
 
     private static Vector<ClientHandler> clients;
@@ -31,7 +35,15 @@ public class ClientHandler extends Thread {
     private boolean mayorIntro;
     private boolean aliveClient; // TODO must handle this field very carefully
     private boolean consultStarted;
+    private ArrayList<Role> removedRoles;
 
+    /**
+     * Instantiates a new Client handler.
+     *
+     * @param socket          the socket
+     * @param clientHandlers  the client handlers
+     * @param numberOfClients the number of clients
+     */
     public ClientHandler(Socket socket, Vector<ClientHandler> clientHandlers, int numberOfClients) {
 
         gameMode = Mode.EnterNameAndReady;
@@ -61,128 +73,285 @@ public class ClientHandler extends Thread {
         }
     }
 
+    public void setRemovedRoles(ArrayList<Role> removedRoles) {
+        this.removedRoles = removedRoles;
+    }
+
+    /**
+     * Is silent boolean.
+     *
+     * @return the boolean
+     */
     public boolean isSilent() {
         return isSilent;
     }
 
+    /**
+     * Sets consult started.
+     *
+     * @param consultStarted the consult started
+     */
     public void setConsultStarted(boolean consultStarted) {
         this.consultStarted = consultStarted;
     }
 
+    /**
+     * Sets mayor intro.
+     *
+     * @param mayorIntro the mayor intro
+     */
     public void setMayorIntro(boolean mayorIntro) {
         this.mayorIntro = mayorIntro;
     }
 
+    /**
+     * Sets my vote.
+     *
+     * @param myVote the my vote
+     */
     public void setMyVote(ClientHandler myVote) {
         this.myVote = myVote;
     }
 
+    /**
+     * Sets vote started.
+     *
+     * @param voteStarted the vote started
+     */
     public void setVoteStarted(boolean voteStarted) {
         this.voteStarted = voteStarted;
     }
 
+    /**
+     * Sets chat started.
+     *
+     * @param chatStarted the chat started
+     */
     public void setChatStarted(boolean chatStarted) {
         this.chatStarted = chatStarted;
     }
 
+    /**
+     * Is alive client boolean.
+     *
+     * @return the boolean
+     */
     public boolean isAliveClient() {
         return aliveClient;
     }
 
+    /**
+     * Sets silent.
+     *
+     * @param silent the silent
+     */
     public void setSilent(boolean silent) {
         isSilent = silent;
     }
 
+    /**
+     * Gets socket.
+     *
+     * @return the socket
+     */
     public Socket getSocket() {
         return socket;
     }
 
+    /**
+     * Sets alive client.
+     *
+     * @param aliveClient the alive client
+     */
     public void setAliveClient(boolean aliveClient) {
         this.aliveClient = aliveClient;
     }
 
+    /**
+     * Gets character.
+     *
+     * @return the character
+     */
     public Character getCharacter() {
         return character;
     }
 
+    /**
+     * Gets output.
+     *
+     * @return the output
+     */
     public ObjectOutputStream getOutput() {
         return output;
     }
 
+    /**
+     * Gets input.
+     *
+     * @return the input
+     */
     public ObjectInputStream getInput() {
         return input;
     }
 
 
+    /**
+     * Sets health.
+     *
+     * @param health the health
+     */
     public void setHealth(int health) {
         this.health = health;
     }
 
+    /**
+     * Gets health.
+     *
+     * @return the health
+     */
     public int getHealth() {
         return health;
     }
 
+    /**
+     * Low health.
+     */
     public void lowHealth(){
         health--;
     }
 
+    /**
+     * Sets character.
+     *
+     * @param character the character
+     */
     public void setCharacter(Character character) {
         this.character = character;
     }
 
+    /**
+     * Is vote started boolean.
+     *
+     * @return the boolean
+     */
     public boolean isVoteStarted() {
         return voteStarted;
     }
 
+    /**
+     * Gets my vote.
+     *
+     * @return the my vote
+     */
     public ClientHandler getMyVote() {
         return myVote;
     }
 
+    /**
+     * Is chat started boolean.
+     *
+     * @return the boolean
+     */
     public boolean isChatStarted() {
         return chatStarted;
     }
 
+    /**
+     * Gets game mode.
+     *
+     * @return the game mode
+     */
     public Mode getGameMode() {
         return gameMode;
     }
 
+    /**
+     * Sets game mode.
+     *
+     * @param gameMode the game mode
+     */
     public void setGameMode(Mode gameMode) {
         this.gameMode = gameMode;
     }
 
+    /**
+     * Sets ready.
+     *
+     * @param ready the ready
+     */
     public void setReady(boolean ready) {
         isReady = ready;
     }
 
+    /**
+     * Is introduced boolean.
+     *
+     * @return the boolean
+     */
     public boolean isIntroduced() {
         return introduced;
     }
 
+    /**
+     * Is ready boolean.
+     *
+     * @return the boolean
+     */
     public boolean isReady() {
         return isReady;
     }
 
+    /**
+     * Is send role boolean.
+     *
+     * @return the boolean
+     */
     public boolean isSendRole() {
         return sendRole;
     }
 
+    /**
+     * Is logged in boolean.
+     *
+     * @return the boolean
+     */
     public boolean isLoggedIn() {
         return isLoggedIn;
     }
 
 
+    /**
+     * Gets client name.
+     *
+     * @return the client name
+     */
     public String getClientName() {
         return clientName;
     }
 
+    /**
+     * Gets role.
+     *
+     * @return the role
+     */
     public Role getRole() {
         return role;
     }
 
+    /**
+     * Sets role.
+     *
+     * @param role the role
+     */
     public void setRole(Role role) {
         this.role = role;
     }
 
+    /**
+     * Send message.
+     *
+     * @param message the message
+     */
     public void sendMessage(Message message) {
         try {
             output.writeObject(message);
@@ -193,7 +362,7 @@ public class ClientHandler extends Thread {
         }
         // send all the messages for dead clients to
         for(ClientHandler c : clients){
-            if(!c.isAliveClient() && c != this){
+            if(!c.isAliveClient()){
                 try {
                     c.getOutput().writeObject(message);
                 }catch (IOException e){
@@ -203,6 +372,11 @@ public class ClientHandler extends Thread {
         }
     }
 
+    /**
+     * Receive message message.
+     *
+     * @return the message
+     */
     public Message receiveMessage() {
         Message message = null;
         try {
@@ -212,6 +386,20 @@ public class ClientHandler extends Thread {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+        // handling exit parts
+        if(message.getText().equals("exit")){
+            setAliveClient(false);
+            setGameMode(Mode.OutOfGame);
+            removedRoles.add(role);
+
+            // closes the socket
+            try {
+                getSocket().close();
+            } catch (IOException e) {
+
+            }
+        }
+
 
         // send this message for the player which is dead
         for(ClientHandler c : clients){
@@ -225,6 +413,8 @@ public class ClientHandler extends Thread {
         }
         return message;
     }
+
+
 
     private void sendToOthers(Message message) {
         for (ClientHandler c : clients) {
@@ -258,6 +448,12 @@ public class ClientHandler extends Thread {
         return s;
     }
 
+    /**
+     * Is client name client handler.
+     *
+     * @param text the text
+     * @return the client handler
+     */
     public static ClientHandler isClientName(String text) {
         for (ClientHandler c : clients) {
             if (c.isAliveClient()) {
@@ -269,6 +465,12 @@ public class ClientHandler extends Thread {
         return null;
     }
 
+    /**
+     * Is mafia name client handler.
+     *
+     * @param text the text
+     * @return the client handler
+     */
     public static ClientHandler isMafiaName(String text) {
         for (ClientHandler c : clients) {
             if (c.getClientName().equals(text) && Role.isMafia(c.getRole()) && c.isAliveClient()) {
@@ -278,6 +480,12 @@ public class ClientHandler extends Thread {
         return null;
     }
 
+    /**
+     * Is villager name client handler.
+     *
+     * @param text the text
+     * @return the client handler
+     */
     public static ClientHandler isVillagerName(String text) {
         for (ClientHandler c : clients) {
             if (c.isAliveClient()) {
@@ -324,8 +532,9 @@ public class ClientHandler extends Thread {
                     voteIntro();
                 }
                 vote();
-            } else if (gameMode == Mode.ResultOfVote) {
                 sleepThread(1000);
+            } else if (gameMode == Mode.ResultOfVote) {
+                sleepThread(5000);
                 // the game will handle this part
             } else if (gameMode == Mode.MayorTime) {
                 if (!mayorIntro)
@@ -536,13 +745,6 @@ public class ClientHandler extends Thread {
             }
         }
     }
-
-    /*private void waitTillRemove() { // the removed one also use this
-        Message message = receiveMessage();
-        if (gameMode == Mode.RemoveByVote) {
-            sendMessage(new Message("God", "Wait"));
-        }
-    }*/
 
     private void mayorTimeIntro() {
 

@@ -1,7 +1,15 @@
 package com.company;
 
+/**
+ * The NonMayorTreat class
+ */
 public class NonMayorTreat extends Behaviour{
 
+    /**
+     * Instantiates a new Non mayor treat.
+     *
+     * @param character the character
+     */
     public NonMayorTreat(Character character) {
         super(character);
     }

@@ -1,8 +1,16 @@
 package com.company;
 
+/**
+ * The NonSniperTreat class which extends Behaviour
+ */
 public class NonSniperTreat extends Behaviour{
 
 
+    /**
+     * Instantiates a new Non sniper treat.
+     *
+     * @param character the character
+     */
     public NonSniperTreat(Character character) {
         super(character);
     }

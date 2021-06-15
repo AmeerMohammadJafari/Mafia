@@ -5,6 +5,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
+/**
+ * The Game which controls the ClientHandlers and move the game forward
+ */
 public class Game extends Thread {
 
     private Vector<ClientHandler> clients;
@@ -21,6 +24,12 @@ public class Game extends Thread {
     private ClientHandler psychologistChoice;
     private boolean diehardAct;
 
+    /**
+     * Instantiates a new Game.
+     *
+     * @param clients         the clients
+     * @param numberOfClients the number of clients
+     */
     public Game(Vector<ClientHandler> clients, int numberOfClients) {
         this.clients = clients;
         Game.numberOfClients = numberOfClients;
@@ -28,40 +37,88 @@ public class Game extends Thread {
         villagers = new Vector<>();
         mafias = new Vector<>();
         removedRoles = new ArrayList<>();
+        for(ClientHandler c : clients){
+            c.setRemovedRoles(removedRoles);
+        }
     }
 
+    /**
+     * Sets diehard act.
+     *
+     * @param diehardAct the diehard act
+     */
     public void setDiehardAct(boolean diehardAct) {
         this.diehardAct = diehardAct;
     }
 
+    /**
+     * Sets psychologist choice.
+     *
+     * @param psychologistChoice the psychologist choice
+     */
     public void setPsychologistChoice(ClientHandler psychologistChoice) {
         this.psychologistChoice = psychologistChoice;
     }
 
+    /**
+     * Gets removed roles.
+     *
+     * @return the removed roles
+     */
     public ArrayList<Role> getRemovedRoles() {
         return removedRoles;
     }
 
+    /**
+     * Sets sniper choice.
+     *
+     * @param sniperChoice the sniper choice
+     */
     public void setSniperChoice(ClientHandler sniperChoice) {
         this.sniperChoice = sniperChoice;
     }
 
+    /**
+     * Sets doctor choice.
+     *
+     * @param doctorChoice the doctor choice
+     */
     public void setDoctorChoice(ClientHandler doctorChoice) {
         this.doctorChoice = doctorChoice;
     }
 
+    /**
+     * Sets doctor lecter choice.
+     *
+     * @param doctorLecterChoice the doctor lecter choice
+     */
     public void setDoctorLecterChoice(ClientHandler doctorLecterChoice) {
         this.doctorLecterChoice = doctorLecterChoice;
     }
 
+    /**
+     * Sets god father choice.
+     *
+     * @param godFatherChoice the god father choice
+     */
     public void setGodFatherChoice(ClientHandler godFatherChoice) {
         this.godFatherChoice = godFatherChoice;
     }
 
+    /**
+     * Gets clients.
+     *
+     * @return the clients
+     */
     public Vector<ClientHandler> getClients() {
         return clients;
     }
 
+    /**
+     * Sets mayor confirmation.
+     *
+     * @param mayorConfirmation the mayor confirmation
+     */
     public void setMayorConfirmation(boolean mayorConfirmation) {
         this.mayorConfirmation = mayorConfirmation;
     }
@@ -81,6 +138,11 @@ public class Game extends Thread {
         }
     }
 
+    /**
+     * Mafias list string.
+     *
+     * @return the string
+     */
     public String mafiasList() {
         String list = "";
         int i = 1;
@@ -95,6 +157,11 @@ public class Game extends Thread {
         return list;
     }
 
+    /**
+     * Villagers list string.
+     *
+     * @return the string
+     */
     public String villagersList() {
         String list = "";
         int i = 1;
@@ -109,6 +176,11 @@ public class Game extends Thread {
         return list;
     }
 
+    /**
+     * Clients list string.
+     *
+     * @return the string
+     */
     public String clientsList() {
         String list = "";
         int i = 1;
@@ -225,6 +297,9 @@ public class Game extends Thread {
         }
     }
 
+    /**
+     * Sets roles.
+     */
     public void setRoles() {
 
         while (numberOfClients != clients.size()) {
@@ -431,7 +506,7 @@ public class Game extends Thread {
             sleepThread(1000);
         }
         //
-        sleepThread(500);
+        sleepThread(3000);
 
     }
 
@@ -453,8 +528,11 @@ public class Game extends Thread {
         for (ClientHandler c : clients) {
             synchronized (c) {
                 try {
-                    voteMap.put(c.getMyVote(), voteMap.get(c.getMyVote()) + 1);
+                    if (c.isAliveClient()) {
+                        voteMap.put(c.getMyVote(), voteMap.get(c.getMyVote()) + 1);
+                    }
                 } catch (NullPointerException e) {
+
                 }
             }
         }
@@ -472,12 +550,15 @@ public class Game extends Thread {
         assert removedByVote != null;
         sendToAll(new Message("God", removedByVote.getClientName() + " has the most votes"));
         setModeForAll(Mode.MayorTime);
-        sleepThread(500);
+        sleepThread(1000);
     }
 
     // have to consider the death of every character
 
 
+    /**
+     * Mayor time.
+     */
     public void mayorTime() {
 
         ClientHandler mayor = null;
@@ -537,7 +618,7 @@ public class Game extends Thread {
         sleepThread(1000);
         if (allInMode(Mode.Remove)) {
             removeFromGame(removedByVote);
-            if(removedByVote.getRole() == Role.GodFather){
+            if (removedByVote.getRole() == Role.GodFather) {
                 ClientHandler clientHandler = null;
                 for (ClientHandler c : clients) {
                     if (Role.isMafia(c.getRole()) && c.isAliveClient()) {
@@ -570,7 +651,7 @@ public class Game extends Thread {
                 outOfGame(c);
                 break;
             } else {
-                removedByVote.sendMessage(new Message("God", ":|"));
+                c.sendMessage(new Message("God", ":|"));
             }
         }
     }
@@ -838,7 +919,7 @@ public class Game extends Thread {
         sleepThread(1000);
         // see who should be killed or not
 
-        if(godFatherChoice == doctorChoice){
+        if (godFatherChoice == doctorChoice) {
             godFatherChoice = null;
         }
 
@@ -853,7 +934,7 @@ public class Game extends Thread {
                     }
                 }
             }
-        }catch (NullPointerException ignored){
+        } catch (NullPointerException ignored) {
 
         }
 
