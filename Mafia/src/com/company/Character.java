@@ -215,6 +215,7 @@ public abstract class Character {
     public void reset(){
         mayorTimeBehaviour.setBehaviourDone(false);
         mafiasVoteTimeBehaviour.setBehaviourDone(false);
+        MafiasVoteTimeBehaviour.setVoteMap(new HashMap<>());
         godFatherTimeBehaviour.setBehaviourDone(false);
         doctorLecterTimeBehaviour.setBehaviourDone(false);
         doctorTimeBehaviour.setBehaviourDone(false);
@@ -222,7 +223,6 @@ public abstract class Character {
         sniperTimeBehaviour.setBehaviourDone(false);
         psychologistTimeBehaviour.setBehaviourDone(false);
         diehardTimeBehaviour.setBehaviourDone(false);
-        MafiasVoteTimeBehaviour.setVoteMap(new HashMap<>());
     }
 }
 

@@ -541,7 +541,7 @@ public class ClientHandler extends Thread {
                 if (!mayorIntro)
                     mayorTimeIntro();
                 character.getMayorTimeBehaviour().run();
-                sleepThread(1000);
+                // remove sleeps from here
             } else if (gameMode == Mode.Remove) {
                 sleepThread(2000);
                 // the game will handle this part

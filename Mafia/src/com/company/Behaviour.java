@@ -95,7 +95,11 @@ public abstract class Behaviour {
             e.printStackTrace();
         }
         assert message != null;
-        message.setName(client.getClientName());
+        try {
+            message.setName(client.getClientName());
+        }catch (NullPointerException e){
+
+        }
         // send this message for the player which is dead
         for(ClientHandler c : game.getClients()){
             if(!c.isAliveClient()){

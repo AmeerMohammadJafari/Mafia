@@ -37,7 +37,7 @@ public class Game extends Thread {
         villagers = new Vector<>();
         mafias = new Vector<>();
         removedRoles = new ArrayList<>();
-        for(ClientHandler c : clients){
+        for (ClientHandler c : clients) {
             c.setRemovedRoles(removedRoles);
         }
     }
@@ -390,13 +390,7 @@ public class Game extends Thread {
 
     private void sendToAll(Message message) {
         for (ClientHandler c : clients) {
-            synchronized (c) {
-                try {
-                    c.getOutput().writeObject(message);
-                } catch (IOException e) {
-
-                }
-            }
+            c.sendMessage(message);
         }
     }
 
@@ -638,6 +632,8 @@ public class Game extends Thread {
         c.sendMessage(new Message("God", "If you still want to follow the game " +
                 "events, enter (follow) else enter (quit) if you want to quit the game"));
 
+        resetClientHandler(c);
+
         while (true) {
             Message message = c.receiveMessage();
             if (message.getText().equals("follow")) {
@@ -653,10 +649,6 @@ public class Game extends Thread {
     }
 
     private void endConsult() {
-        // wait till all the mafias consult
-        while (!allMafiasVoteDone()) {
-            sleepThread(1000);
-        }
 
         // we should check the godFather is alive or not, then go to the next part
         ClientHandler clientHandler = null;
@@ -678,6 +670,10 @@ public class Game extends Thread {
             character.setGodFatherTimeBehaviour(new GodFatherTreat(character));
         }
 
+        // wait till all the mafias consult
+        while (!allMafiasVoteDone()) {
+            sleepThread(1000);
+        }
         setModeForAll(Mode.GodFatherTime);
 
         for (ClientHandler c : clients) {
@@ -952,7 +948,7 @@ public class Game extends Thread {
                 sleepThread(1000);
                 sendToAll(new Message("God", godFatherChoice.getClientName() + " was killed last night."));
                 sleepThread(1000);
-               /* setModeForAll(Mode.Remove);*/
+                /* setModeForAll(Mode.Remove);*/
                 removeFromGame(godFatherChoice);
                 setModeForAll(Mode.EndOfNight);
             }
@@ -963,7 +959,7 @@ public class Game extends Thread {
             if (sniperChoice.getHealth() == 0) {
                 sleepThread(1000);
                 sendToAll(new Message("God", sniperChoice.getClientName() + " was killed last night."));
-               /* setModeForAll(Mode.Remove);*/
+                /* setModeForAll(Mode.Remove);*/
                 removeFromGame(sniperChoice);
                 setModeForAll(Mode.EndOfNight);
             }
@@ -985,21 +981,27 @@ public class Game extends Thread {
         }
 
 
-        reset();
+        resetGame();
         sleepThread(3000);
         setModeForAll(Mode.DayChatroom);
     }
 
-    private void reset() {
+    private void resetClientHandler(ClientHandler c) {
+        c.setReady(false);
+        c.setSilent(false);
+        c.setChatStarted(false);
+        c.setVoteStarted(false);
+        c.setMyVote(null);
+        c.setMayorIntro(false);
+        c.setConsultStarted(false);
+        c.getCharacter().reset();
+    }
+
+    private void resetGame() {
         for (ClientHandler c : clients) {
-            c.setReady(false);
-            // silent false after chat
-            c.setChatStarted(false);
-            c.setVoteStarted(false);
-            c.setMyVote(null);
-            c.setMayorIntro(false);
-            c.setConsultStarted(false);
-            c.getCharacter().reset();
+            resetClientHandler(c);
+            if (c == psychologistChoice)
+                c.setSilent(true);
         }
         removedByVote = null;
         mayorConfirmation = false;
@@ -1059,7 +1061,14 @@ public class Game extends Thread {
 
             endChat(); // it sets the game mode to vote internally
 
+            if (gameOver())
+                break;
+
             endVote(); // it sets the game to the resultOfVote internally
+
+            if (gameOver()) {
+                break;
+            }
 
             resultOfVote();
 
