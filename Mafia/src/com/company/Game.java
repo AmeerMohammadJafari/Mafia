@@ -128,6 +128,7 @@ public class Game extends Thread {
         int i = 1;
         for (Role role : removedRoles) {
             list += i + "." + role + " ";
+            i++;
         }
         return list;
     }
@@ -360,11 +361,11 @@ public class Game extends Thread {
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                for (ClientHandler c : clients) {
+                /*for (ClientHandler c : clients) {
                     synchronized (c) {
                         c.setReady(true);
                     }
-                } // makes every client ready
+                } // makes every client ready*/
                 setModeForAll(Mode.Vote);
                 sleepThread(500);
                 sendToAll(new Message("God", "The chat is over."));
@@ -372,7 +373,7 @@ public class Game extends Thread {
                 isDone[0] = true;
             }
         };
-        timer.schedule(timerTask, 60 * 1000);
+        timer.schedule(timerTask, 45 * 1000);
 
         while (!isDone[0]) {
             if (allClientReady()) {
@@ -429,7 +430,7 @@ public class Game extends Thread {
         while (!isDone[0]) {
             sleepThread(1000);
         }
-
+        //
         sleepThread(500);
 
     }
@@ -535,7 +536,6 @@ public class Game extends Thread {
         // the game will enter this method if there is a removedByVote client
         sleepThread(1000);
         if (allInMode(Mode.Remove)) {
-            sleepThread(1000);
             removeFromGame(removedByVote);
             if(removedByVote.getRole() == Role.GodFather){
                 ClientHandler clientHandler = null;
@@ -619,8 +619,13 @@ public class Game extends Thread {
 
         sendToAll(new Message("God", "The GodFatherTime"));
 
+        ClientHandler godFather = null;
+        for (ClientHandler c : clients) {
+            if (c.getCharacter().getGodFatherTimeBehaviour() instanceof GodFatherTreat && c.isAliveClient())
+                godFather = c;
+        }
         // loop until godFather done his work
-        while (godFatherChoice == null) {
+        while (!godFather.getCharacter().getGodFatherTimeBehaviour().behaviourDone) {
             sleepThread(1000);
         }
 
@@ -644,6 +649,7 @@ public class Game extends Thread {
             if (c.getRole() == Role.DoctorLecter)
                 doctorLecter = c;
         }
+
         // handling dead dr lecter
         if (!doctorLecter.isAliveClient()) {
             doctorLecter.getCharacter().getDoctorLecterTimeBehaviour().setBehaviourDone(true);
@@ -892,6 +898,7 @@ public class Game extends Thread {
             sendToAll(new Message("God", "Removed Roles are :"));
             sleepThread(1000);
             sendToAll(new Message("God", removedList()));
+            sleepThread(3000);
         }
 
 
